@@ -26,7 +26,14 @@
 		"PlaybookName": {
 			"defaultValue": "RecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash",
 			"type": "string"
-		}
+		},
+        "IntelligenceCloudSharingConsent": {
+            "defaultValue": true,
+            "type": "bool",
+            "metadata": {
+                "description": "Consent to share correlations and enrichments with the Recorded Future Intelligence Cloud. More informations can be foud here [Recorded Future Intelligence Cloud](https://support.recordedfuture.com/)"
+            }
+        }
 	},
 	"variables": {
 		"RecordedFutureConnectionName": "recordedfuture-connectorv2",
@@ -107,7 +114,8 @@
                                                         "method": "get",
                                                         "path": "/lookup/domain/@{encodeURIComponent(body('Parse_JSON_-_DNS_Resolution')?['domainName'])}",
                                                         "queries": {
-                                                            "fields": "intelCard,risk"
+                                                            "fields": "intelCard,risk",
+                                                            "consent": "@parameters('IntelligenceCloudSharingConsent')"
                                                         }
                                                     },
                                                     "runAfter": {
@@ -221,7 +229,8 @@
                                                         "method": "get",
                                                         "path": "/lookup/hash/@{encodeURIComponent(body('Parse_JSON_-_File_Hash')?['hashValue'])}",
                                                         "queries": {
-                                                            "fields": "intelCard,risk"
+                                                            "fields": "intelCard,risk",
+                                                            "consent": "@parameters('IntelligenceCloudSharingConsent')"
                                                         }
                                                     },
                                                     "runAfter": {
@@ -349,7 +358,8 @@
                                                         "method": "get",
                                                         "path": "/lookup/url/@{encodeURIComponent(body('Parse_JSON_-_Url')?['url'])}",
                                                         "queries": {
-                                                            "fields": "intelCard,risk"
+                                                            "fields": "intelCard,risk",
+                                                            "consent": "@parameters('IntelligenceCloudSharingConsent')"
                                                         }
                                                     },
                                                     "runAfter": {
@@ -414,7 +424,8 @@
                                                         "method": "get",
                                                         "path": "/lookup/ip/@{encodeURIComponent(body('Parse_JSON_-_Ip')?['address'])}",
                                                         "queries": {
-                                                            "fields": "intelCard,risk"
+                                                            "fields": "intelCard,risk",
+                                                            "consent": "@parameters('IntelligenceCloudSharingConsent')"
                                                         }
                                                     },
                                                     "runAfter": {
@@ -494,6 +505,10 @@
                     "contentVersion": "1.0.0.0",
                     "outputs": {},
                     "parameters": {
+                        "IntelligenceCloudSharingConsent": {
+                            "defaultValue": "true",
+                            "type": "bool"
+                        },
                         "$connections": {
                             "defaultValue": {},
                             "type": "Object"
@@ -517,6 +532,9 @@
                     }
                 },
 				"parameters": {
+                    "IntelligenceCloudSharingConsent": {
+                        "value": "[parameters('IntelligenceCloudSharingConsent')]"
+                    },
 					"$connections": {
 						"value": {
 							"azuresentinel": {
