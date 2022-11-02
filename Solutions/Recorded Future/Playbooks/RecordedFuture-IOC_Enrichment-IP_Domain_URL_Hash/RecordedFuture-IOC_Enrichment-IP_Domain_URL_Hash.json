@@ -31,7 +31,7 @@
             "defaultValue": true,
             "type": "bool",
             "metadata": {
-                "description": "Consent to share correlations and enrichments with the Recorded Future Intelligence Cloud. More informations can be foud here [Recorded Future Intelligence Cloud](https://support.recordedfuture.com/)"
+                "description": "Consent to share correlations and enrichments data with the Recorded Future Intelligence Cloud. More informations can be found here [Recorded Future Intelligence Cloud](https://support.recordedfuture.com/)"
             }
         }
 	},
