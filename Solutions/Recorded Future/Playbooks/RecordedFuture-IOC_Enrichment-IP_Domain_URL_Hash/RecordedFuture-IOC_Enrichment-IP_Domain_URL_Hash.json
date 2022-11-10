@@ -12,9 +12,14 @@
             "tier": "community"
         },
         "author": {
-            "name": "Adrian Porcescu, Recorded Future"
+            "name": "Recorded Future"
         },
         "releaseNotes": [
+             {
+                "version": "1.1.0",
+                "title": "RecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash",
+                "notes": [ "Added consent to share data with Recorded Future Intelligence Cloud." ]
+            },
             {
                 "version": "1.0.0",
                 "title": "RecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash",
