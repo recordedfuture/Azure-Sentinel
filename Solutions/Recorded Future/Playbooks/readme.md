@@ -9,7 +9,9 @@ Recorded Future is the world’s largest provider of intelligence for enterprise
 
 ## ImportToSentinel
 
-This playbooks will serve via the Microsoft Batching mechanism all of the IndicatorProcessor playbooks, for optimizition of the indicator deployment process.
+This playbooks will serve  all of the IndicatorProcessor playbooks via the Microsoft Batching mechanism for optimizition of the indicator deployment process.
+
+Install this playbook before any of the IndicatorProcessor playbooks.
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FAzure-Sentinel%2Fmaster%2FSolutions%2FRecorded%2520Future%2FPlaybooks%2FRecordedFuture-ImportToSentinel%2FRecordedFuture-ImportToSentinel.json)
 [![Deploy to Azure Gov](https://aka.ms/deploytoazuregovbutton)](https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FAzure-Sentinel%2Fmaster%2FSolutions%2FRecorded%2520Future%2FPlaybooks%2FRecordedFuture-ImportToSentinel%2FRecordedFuture-ImportToSentinel.json)
@@ -46,5 +48,16 @@ This playbook leverages the Recorded Future API to automate the ingestion of Rec
 
 This playbook leverages the Recorded Future API to automatically enrich the IP, Domain, Url and Hash indicators, found in incidents, with the following Recorded Future context: Risk Score, Risk Rules and Link to Intelligence Card. The enrichment content will be posted as a comment in the Sentinel incident. For additional information please visit [Recorded Future](https://www.recordedfuture.com/integrations/azure/) 
 
+
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FAzure-Sentinel%2Fmaster%2FSolutions%2FRecorded%2520Future%2FPlaybooks%2FRecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash%2FRecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash.json)
 [![Deploy to Azure Gov](https://aka.ms/deploytoazuregovbutton)](https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FAzure-Sentinel%2Fmaster%2FSolutions%2FRecorded%2520Future%2FPlaybooks%2FRecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash%2FRecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash.json)
+
+![](./RecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash/LogicAppDark.png)
+
+When the enrichment playbook is installed and configure. Create a automation rule to automate the enrichment process.
+![](./RecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash/CreateAutomationRuleMenu.png)<br/>
+Select automation rule and enrichment playbook to run.
+![](./RecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash/CreateAutomationRule.png)<br/>
+After the automation rule is created, the enrichment playbook will run automatically when a new incident is created. Enrichment of known entities will be written as a comment in the incident.
+![](./RecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash/EnrichmentExampleDark.png)<br/>
+

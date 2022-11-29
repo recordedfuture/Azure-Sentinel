@@ -1,24 +1,35 @@
 {
-	"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-	"contentVersion": "1.0.0.0",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
     "metadata": {
         "title": "RecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash",
-        "description": "This playbook leverages the Recorded Future API to automatically enrich the IP, Domain, Url & Hash indicators, found in Sentinel incidents, with the following context: Risk Score, Risk Rules and Link to Intelligence Card. The enrichment content will be posted as a comment in the Sentinel incident",
-        "prerequisites": [ "None" ],
-        "lastUpdateTime": "2022-08-01T00:00:00.000Z",
-        "entities": [],
-        "tags": ["Enrichment"],
+        "description": "This playbook leverages the Recorded Future API to enrich IP, Domain, Url & Hash indicators, found in Sentinel incidents, with the following context: Risk Score, Risk Rules and Link to Intelligence Card. The enrichment content will be posted as a comment in the Sentinel incident <img alt=\"Sentinel incident comment\" src=\"https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/Solutions/Recorded%20Future/Playbooks/RecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash/EnrichmentExampleDark.png\"/>.",
+        "prerequisites": [
+            "To use the Recorded Future for Azure connector, you will need a valid API token from Recorded Future as described in the documentation https://learn.microsoft.com/en-us/connectors/recordedfuturev2/#how-to-get-credentials"
+        ],
+        "postDeployment": [
+            "After deployment open the playbook in editmode and configure/authorize all connections and press save.n<img alt=\"Logic app schema\" src=\"https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/Solutions/Recorded%20Future/Playbooks/RecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash/LogicAppDark.png\" />"
+        ],
+        "prerequisitesDeployTemplateFile": "",
+        "lastUpdateTime": "2022-11-29T00:00:00.000Z",
+        "entities": [
+            "ip",
+            "url",
+            "domain",
+            "filehash"
+        ],
+        "tags": [ "Enrichment" ],
         "support": {
-            "tier": "community"
+            "tier": "Partner"
         },
         "author": {
             "name": "Recorded Future"
         },
         "releaseNotes": [
-             {
+            {
                 "version": "1.1.0",
                 "title": "RecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash",
-                "notes": [ "Added consent to share data with Recorded Future Intelligence Cloud." ]
+                "notes": [ "Improved layout and added consent for intelligence Recorded Future cloud sharing." ]
             },
             {
                 "version": "1.0.0",
@@ -27,35 +38,35 @@
             }
         ]
     },
-	"parameters": {
-		"PlaybookName": {
-			"defaultValue": "RecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash",
-			"type": "string"
-		},
+    "parameters": {
+        "PlaybookName": {
+            "defaultValue": "RecordedFuture-IOC_Enrichment-IP_Domain_URL_Hash",
+            "type": "string"
+        },
         "IntelligenceCloudSharingConsent": {
             "defaultValue": true,
             "type": "bool",
             "metadata": {
-                "description": "Consent to share correlations and enrichments data with the Recorded Future Intelligence Cloud. More informations can be found here [Recorded Future Intelligence Cloud](https://support.recordedfuture.com/)"
+                "description": "Consent to share correlations and enrichments data with the Recorded Future Intelligence Cloud. More informations can be found here [Recorded Future Intelligence Cloud](https://support.recordedfuture.com/hc/en-us/articles/11633413141779)"
             }
         }
-	},
-	"variables": {
-		"RecordedFutureConnectionName": "recordedfuture-connectorv2",
-		"AzureSentinelConnectionName":  "[concat('azuresentinel-', parameters('PlaybookName'))]"
-	},
-	"resources": [
-		{
-			"type": "Microsoft.Logic/workflows",
-			"apiVersion": "2017-07-01",
-			"name": "[parameters('PlaybookName')]",
-			"location": "[resourceGroup().location]",
-			"dependsOn": [
-				"[resourceId('Microsoft.Web/connections', variables('AzureSentinelConnectionName'))]",
-				"[resourceId('Microsoft.Web/connections', variables('RecordedFutureConnectionName'))]"
-			],
-			"properties": {
-				"definition": {
+    },
+    "variables": {
+        "RecordedFutureConnectionName": "recordedfuture-connectorv2",
+        "AzureSentinelConnectionName": "[concat('azuresentinel-', parameters('PlaybookName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('PlaybookName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/connections', variables('AzureSentinelConnectionName'))]",
+                "[resourceId('Microsoft.Web/connections', variables('RecordedFutureConnectionName'))]"
+            ],
+            "properties": {
+                "definition": {
                     "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
                     "actions": {
                         "For_each": {
@@ -92,7 +103,7 @@
                                                     "inputs": {
                                                         "body": {
                                                             "incidentArmId": "@triggerBody()?['object']?['id']",
-                                                            "message": "<p>Recorded Future Domain Enrichment<br>\nDomain: @{body('Parse_JSON_-_DNS_Resolution')?['domainName']}<br>\nRisk Score: @{body('Domain_Enrichment')?['data']?['risk']?['score']}<br>\nRisk Rules: @{variables('Rules')}<br>\nLink to Intelligence Card: @{body('Domain_Enrichment')?['data']?['intelCard']}</p>"
+                                                            "message": "<p><img src=\"https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/Logos/RecordedFuture.svg\" width=\"80\" height=\"80\"/><br>\nEnrichmed Domain: <strong>@{body('Parse_JSON_-_DNS_Resolution')?['domainName']}</strong><br>\nRisk Score: <strong>@{body('Domain_Enrichment')?['data']?['risk']?['score']}</strong><br>\n@{concat('<a href=\"', body('Domain_Enrichment')?['data']?['intelCard'],'\">Open IOC Intelligence Card (Portal)</a>')}<br>\nTriggered Risk Rules: @{body('Create_HTML_table_4')}</p>"
                                                         },
                                                         "host": {
                                                             "connection": {
@@ -103,11 +114,37 @@
                                                         "path": "/Incidents/Comment"
                                                     },
                                                     "runAfter": {
-                                                        "For_each_-_Evidence_Details_-_DnsResolution": [
+                                                        "Create_HTML_table_4": [
                                                             "Succeeded"
                                                         ]
                                                     },
                                                     "type": "ApiConnection"
+                                                },
+                                                "Create_HTML_table_4": {
+                                                    "inputs": {
+                                                        "columns": [
+                                                            {
+                                                                "header": "Risk_Rules",
+                                                                "value": "@item()?['rule']"
+                                                            },
+                                                            {
+                                                                "header": "Severity",
+                                                                "value": "@body('Domain_Enrichment')?['data']?['risk']?['criticalityLabel']"
+                                                            },
+                                                            {
+                                                                "header": "Evidence_Details",
+                                                                "value": "@item()?['evidenceString']"
+                                                            }
+                                                        ],
+                                                        "format": "HTML",
+                                                        "from": "@body('Domain_Enrichment')?['data']?['risk']?['evidenceDetails']"
+                                                    },
+                                                    "runAfter": {
+                                                        "Domain_Enrichment": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "type": "Table"
                                                 },
                                                 "Domain_Enrichment": {
                                                     "inputs": {
@@ -124,30 +161,11 @@
                                                         }
                                                     },
                                                     "runAfter": {
-                                                        "Set_variable": [
+                                                        "Parse_JSON_-_DNS_Resolution": [
                                                             "Succeeded"
                                                         ]
                                                     },
                                                     "type": "ApiConnection"
-                                                },
-                                                "For_each_-_Evidence_Details_-_DnsResolution": {
-                                                    "actions": {
-                                                        "Append_to_string_variable": {
-                                                            "inputs": {
-                                                                "name": "Rules",
-                                                                "value": "@{items('For_each_-_Evidence_Details_-_DnsResolution')?['rule']} | "
-                                                            },
-                                                            "runAfter": {},
-                                                            "type": "AppendToStringVariable"
-                                                        }
-                                                    },
-                                                    "foreach": "@body('Domain_Enrichment')?['data']?['risk']?['evidenceDetails']",
-                                                    "runAfter": {
-                                                        "Domain_Enrichment": [
-                                                            "Succeeded"
-                                                        ]
-                                                    },
-                                                    "type": "Foreach"
                                                 },
                                                 "Parse_JSON_-_DNS_Resolution": {
                                                     "inputs": {
@@ -166,18 +184,6 @@
                                                     },
                                                     "runAfter": {},
                                                     "type": "ParseJson"
-                                                },
-                                                "Set_variable": {
-                                                    "inputs": {
-                                                        "name": "Rules",
-                                                        "value": " "
-                                                    },
-                                                    "runAfter": {
-                                                        "Parse_JSON_-_DNS_Resolution": [
-                                                            "Succeeded"
-                                                        ]
-                                                    },
-                                                    "type": "SetVariable"
                                                 }
                                             },
                                             "case": "DnsResolution"
@@ -188,7 +194,7 @@
                                                     "inputs": {
                                                         "body": {
                                                             "incidentArmId": "@triggerBody()?['object']?['id']",
-                                                            "message": "<p>Recorded Future Hash Enrichment<br>\nHash: @{body('Parse_JSON_-_File_Hash')?['hashValue']}<br>\nRisk Score: @{body('Hash_Enrichment')?['data']?['risk']?['score']}<br>\nRisk Rules: @{variables('Rules')}<br>\nLink to Intelligence Card: @{body('Hash_Enrichment')?['data']?['intelCard']}</p>"
+                                                            "message": "<p><img src=\"https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/Logos/RecordedFuture.svg\" width=\"80\" height=\"80\"/><br>\nEnrichmed Hash: <strong>@{body('Parse_JSON_-_File_Hash')?['hashValue']}</strong><br>\nRisk Score: <strong></strong><strong>@{body('Hash_Enrichment')?['data']?['risk']?['score']}</strong><br>\n@{concat('<a href=\"', body('Hash_Enrichment')?['data']?['intelCard'],'\">Open IOC Intelligence Card (Portal)</a>')}<br>\nRisk Rules: @{body('Create_HTML_table_3')}</p>"
                                                         },
                                                         "host": {
                                                             "connection": {
@@ -199,30 +205,37 @@
                                                         "path": "/Incidents/Comment"
                                                     },
                                                     "runAfter": {
-                                                        "For_each_-_Evidence_Details_-_FileHash": [
+                                                        "Create_HTML_table_3": [
                                                             "Succeeded"
                                                         ]
                                                     },
                                                     "type": "ApiConnection"
                                                 },
-                                                "For_each_-_Evidence_Details_-_FileHash": {
-                                                    "actions": {
-                                                        "Append_to_string_variable_2": {
-                                                            "inputs": {
-                                                                "name": "Rules",
-                                                                "value": "@{items('For_each_-_Evidence_Details_-_FileHash')?['rule']} | "
+                                                "Create_HTML_table_3": {
+                                                    "inputs": {
+                                                        "columns": [
+                                                            {
+                                                                "header": "Risk_Rules",
+                                                                "value": "@item()?['rule']"
                                                             },
-                                                            "runAfter": {},
-                                                            "type": "AppendToStringVariable"
-                                                        }
+                                                            {
+                                                                "header": "Severity",
+                                                                "value": "@body('Hash_Enrichment')?['data']?['risk']?['criticalityLabel']"
+                                                            },
+                                                            {
+                                                                "header": "Evidence_Details",
+                                                                "value": "@item()?['evidenceString']"
+                                                            }
+                                                        ],
+                                                        "format": "HTML",
+                                                        "from": "@body('Hash_Enrichment')?['data']?['risk']?['evidenceDetails']"
                                                     },
-                                                    "foreach": "@body('Hash_Enrichment')?['data']?['risk']?['evidenceDetails']",
                                                     "runAfter": {
                                                         "Hash_Enrichment": [
                                                             "Succeeded"
                                                         ]
                                                     },
-                                                    "type": "Foreach"
+                                                    "type": "Table"
                                                 },
                                                 "Hash_Enrichment": {
                                                     "inputs": {
@@ -239,7 +252,7 @@
                                                         }
                                                     },
                                                     "runAfter": {
-                                                        "Set_variable_2": [
+                                                        "Parse_JSON_-_File_Hash": [
                                                             "Succeeded"
                                                         ]
                                                     },
@@ -265,18 +278,6 @@
                                                     },
                                                     "runAfter": {},
                                                     "type": "ParseJson"
-                                                },
-                                                "Set_variable_2": {
-                                                    "inputs": {
-                                                        "name": "Rules",
-                                                        "value": " "
-                                                    },
-                                                    "runAfter": {
-                                                        "Parse_JSON_-_File_Hash": [
-                                                            "Succeeded"
-                                                        ]
-                                                    },
-                                                    "type": "SetVariable"
                                                 }
                                             },
                                             "case": "FileHash"
@@ -287,7 +288,7 @@
                                                     "inputs": {
                                                         "body": {
                                                             "incidentArmId": "@triggerBody()?['object']?['id']",
-                                                            "message": "<p>Recorded Future URL Enrichment<br>\nURL: @{replace(body('Parse_JSON_-_Url')?['url'],'.','[.]')}<br>\nRisk Score: @{body('URL_Enrichment')?['data']?['risk']?['score']}<br>\nRisk Rules: @{variables('Rules')}</p>"
+                                                            "message": "<p><img src=\"https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/Logos/RecordedFuture.svg\" width=\"80\" height=\"80\"/><br>\nEnriched URL: <strong></strong><strong>@{replace(body('Parse_JSON_-_Url')?['url'],'.','[.]')}</strong><strong></strong><br>\nRisk Score: <strong></strong><strong>@{body('URL_Enrichment')?['data']?['risk']?['score']}</strong><strong></strong><br>\nTriggered&nbsp;Risk&nbsp;Rules: @{body('Create_HTML_table_2')}</p>"
                                                         },
                                                         "host": {
                                                             "connection": {
@@ -298,30 +299,37 @@
                                                         "path": "/Incidents/Comment"
                                                     },
                                                     "runAfter": {
-                                                        "For_each_-_Evidence_Details_-_Url": [
+                                                        "Create_HTML_table_2": [
                                                             "Succeeded"
                                                         ]
                                                     },
                                                     "type": "ApiConnection"
                                                 },
-                                                "For_each_-_Evidence_Details_-_Url": {
-                                                    "actions": {
-                                                        "Append_to_string_variable_3": {
-                                                            "inputs": {
-                                                                "name": "Rules",
-                                                                "value": "@{items('For_each_-_Evidence_Details_-_Url')?['rule']} | "
+                                                "Create_HTML_table_2": {
+                                                    "inputs": {
+                                                        "columns": [
+                                                            {
+                                                                "header": "Risk_Rules",
+                                                                "value": "@item()?['rule']"
                                                             },
-                                                            "runAfter": {},
-                                                            "type": "AppendToStringVariable"
-                                                        }
+                                                            {
+                                                                "header": "Severity",
+                                                                "value": "@body('URL_Enrichment')?['data']?['risk']?['criticalityLabel']"
+                                                            },
+                                                            {
+                                                                "header": "Evidence_Details",
+                                                                "value": "@item()?['evidenceString']"
+                                                            }
+                                                        ],
+                                                        "format": "HTML",
+                                                        "from": "@body('URL_Enrichment')?['data']?['risk']?['evidenceDetails']"
                                                     },
-                                                    "foreach": "@body('URL_Enrichment')?['data']?['risk']?['evidenceDetails']",
                                                     "runAfter": {
                                                         "URL_Enrichment": [
                                                             "Succeeded"
                                                         ]
                                                     },
-                                                    "type": "Foreach"
+                                                    "type": "Table"
                                                 },
                                                 "Parse_JSON_-_Url": {
                                                     "inputs": {
@@ -341,18 +349,6 @@
                                                     "runAfter": {},
                                                     "type": "ParseJson"
                                                 },
-                                                "Set_variable_3": {
-                                                    "inputs": {
-                                                        "name": "Rules",
-                                                        "value": " "
-                                                    },
-                                                    "runAfter": {
-                                                        "Parse_JSON_-_Url": [
-                                                            "Succeeded"
-                                                        ]
-                                                    },
-                                                    "type": "SetVariable"
-                                                },
                                                 "URL_Enrichment": {
                                                     "inputs": {
                                                         "host": {
@@ -363,12 +359,12 @@
                                                         "method": "get",
                                                         "path": "/lookup/url/@{encodeURIComponent(body('Parse_JSON_-_Url')?['url'])}",
                                                         "queries": {
-                                                            "fields": "intelCard,risk",
+                                                            "fields": "risk",
                                                             "consent": "@parameters('IntelligenceCloudSharingConsent')"
                                                         }
                                                     },
                                                     "runAfter": {
-                                                        "Set_variable_3": [
+                                                        "Parse_JSON_-_Url": [
                                                             "Succeeded"
                                                         ]
                                                     },
@@ -379,11 +375,11 @@
                                         },
                                         "Case_4": {
                                             "actions": {
-                                                "Add_comment_to_incident_(V3)_-_IP": {
+                                                "Add_comment_to_incident_(V3)": {
                                                     "inputs": {
                                                         "body": {
                                                             "incidentArmId": "@triggerBody()?['object']?['id']",
-                                                            "message": "<p>Recorded Future IP Enrichment<br>\nIP: @{body('Parse_JSON_-_Ip')?['address']}<br>\nRisk Score: @{body('IP_Enrichment')?['data']?['risk']?['score']}<br>\nRisk Rules: @{variables('Rules')}<br>\nLink to Intelligence Card: @{body('IP_Enrichment')?['data']?['intelCard']}</p>"
+                                                            "message": "<p>No Recorded Future IP Enrichment found for<br>\nIP:@{body('Parse_JSON_-_Ip')?['address']}</p>"
                                                         },
                                                         "host": {
                                                             "connection": {
@@ -394,30 +390,58 @@
                                                         "path": "/Incidents/Comment"
                                                     },
                                                     "runAfter": {
-                                                        "For_each_-_Evidence_Details_-_Ip": [
+                                                        "IP_Enrichment": [
+                                                            "Failed"
+                                                        ]
+                                                    },
+                                                    "type": "ApiConnection"
+                                                },
+                                                "Add_comment_to_incident_(V3)_-_IP": {
+                                                    "inputs": {
+                                                        "body": {
+                                                            "incidentArmId": "@triggerBody()?['object']?['id']",
+                                                            "message": "<p><img src=\"https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/Logos/RecordedFuture.svg\" width=\"80\" height=\"80\"/><br>\n Enriched IP: <strong></strong><strong>@{body('Parse_JSON_-_Ip')?['address']}</strong><strong></strong><br>\nRisk Score: <strong></strong><strong>@{body('IP_Enrichment')?['data']?['risk']?['score']}</strong><strong></strong><br>\n@{concat('<a href=\"', body('IP_Enrichment')?['data']?['intelCard'],'\">Open IOC Intelligence Card (Portal)</a>')}<br>\nTriggered&nbsp;Risk&nbsp;Rules: @{body('Create_HTML_table')}</p>"
+                                                        },
+                                                        "host": {
+                                                            "connection": {
+                                                                "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                                            }
+                                                        },
+                                                        "method": "post",
+                                                        "path": "/Incidents/Comment"
+                                                    },
+                                                    "runAfter": {
+                                                        "Create_HTML_table": [
                                                             "Succeeded"
                                                         ]
                                                     },
                                                     "type": "ApiConnection"
                                                 },
-                                                "For_each_-_Evidence_Details_-_Ip": {
-                                                    "actions": {
-                                                        "Append_to_string_variable_4": {
-                                                            "inputs": {
-                                                                "name": "Rules",
-                                                                "value": "@{items('For_each_-_Evidence_Details_-_Ip')?['rule']} | "
+                                                "Create_HTML_table": {
+                                                    "inputs": {
+                                                        "columns": [
+                                                            {
+                                                                "header": "Risk_Rules",
+                                                                "value": "@item()?['rule']"
                                                             },
-                                                            "runAfter": {},
-                                                            "type": "AppendToStringVariable"
-                                                        }
+                                                            {
+                                                                "header": "Severity",
+                                                                "value": "@body('IP_Enrichment')?['data']?['risk']?['criticalityLabel']"
+                                                            },
+                                                            {
+                                                                "header": "Evidence_Details",
+                                                                "value": "@item()?['evidenceString']"
+                                                            }
+                                                        ],
+                                                        "format": "HTML",
+                                                        "from": "@body('IP_Enrichment')?['data']?['risk']?['evidenceDetails']"
                                                     },
-                                                    "foreach": "@body('IP_Enrichment')?['data']?['risk']?['evidenceDetails']",
                                                     "runAfter": {
                                                         "IP_Enrichment": [
                                                             "Succeeded"
                                                         ]
                                                     },
-                                                    "type": "Foreach"
+                                                    "type": "Table"
                                                 },
                                                 "IP_Enrichment": {
                                                     "inputs": {
@@ -434,7 +458,7 @@
                                                         }
                                                     },
                                                     "runAfter": {
-                                                        "Set_variable_4": [
+                                                        "Parse_JSON_-_Ip": [
                                                             "Succeeded"
                                                         ]
                                                     },
@@ -457,18 +481,6 @@
                                                     },
                                                     "runAfter": {},
                                                     "type": "ParseJson"
-                                                },
-                                                "Set_variable_4": {
-                                                    "inputs": {
-                                                        "name": "Rules",
-                                                        "value": " "
-                                                    },
-                                                    "runAfter": {
-                                                        "Parse_JSON_-_Ip": [
-                                                            "Succeeded"
-                                                        ]
-                                                    },
-                                                    "type": "SetVariable"
                                                 }
                                             },
                                             "case": "Ip"
@@ -487,24 +499,8 @@
                                 }
                             },
                             "foreach": "@triggerBody()?['object']?['properties']?['relatedEntities']",
-                            "runAfter": {
-                                "Initialize_variable": [
-                                    "Succeeded"
-                                ]
-                            },
-                            "type": "Foreach"
-                        },
-                        "Initialize_variable": {
-                            "inputs": {
-                                "variables": [
-                                    {
-                                        "name": "Rules",
-                                        "type": "string"
-                                    }
-                                ]
-                            },
                             "runAfter": {},
-                            "type": "InitializeVariable"
+                            "type": "Foreach"
                         }
                     },
                     "contentVersion": "1.0.0.0",
@@ -536,48 +532,48 @@
                         }
                     }
                 },
-				"parameters": {
+                "parameters": {
                     "IntelligenceCloudSharingConsent": {
                         "value": "[parameters('IntelligenceCloudSharingConsent')]"
                     },
-					"$connections": {
-						"value": {
-							"azuresentinel": {
-								"id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/azuresentinel')]",
-								"connectionId": "[resourceId('Microsoft.Web/connections', variables('AzureSentinelConnectionName'))]",
-								"connectionName": "[variables('AzureSentinelConnectionName')]"
-							},
-							"recordedfuture": {
-								"id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/recordedfuturev2')]",
-								"connectionId": "[resourceId('Microsoft.Web/connections', variables('RecordedFutureConnectionName'))]",
-								"connectionName": "[variables('RecordedFutureConnectionName')]"
-							}
-						}
-					}
-				}
-			}
-		},
-		{
-			"type": "Microsoft.Web/connections",
-			"apiVersion": "2016-06-01",
-			"name": "[variables('RecordedFutureConnectionName')]",
-			"location": "[resourceGroup().location]",
-			"properties": {
-				"api": {
-					"id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/recordedfuturev2')]"
-				}
-			}
-		},
-		{
-			"type": "Microsoft.Web/connections",
-			"apiVersion": "2016-06-01",
-			"name": "[variables('AzureSentinelConnectionName')]",
-			"location": "[resourceGroup().location]",
-			"properties": {
-				"api": {
-					"id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/azuresentinel')]"
-				}
-			}
-		}
-	]
+                    "$connections": {
+                        "value": {
+                            "azuresentinel": {
+                                "id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/azuresentinel')]",
+                                "connectionId": "[resourceId('Microsoft.Web/connections', variables('AzureSentinelConnectionName'))]",
+                                "connectionName": "[variables('AzureSentinelConnectionName')]"
+                            },
+                            "recordedfuture": {
+                                "id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/recordedfuturev2')]",
+                                "connectionId": "[resourceId('Microsoft.Web/connections', variables('RecordedFutureConnectionName'))]",
+                                "connectionName": "[variables('RecordedFutureConnectionName')]"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "apiVersion": "2016-06-01",
+            "name": "[variables('RecordedFutureConnectionName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "api": {
+                    "id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/recordedfuturev2')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "apiVersion": "2016-06-01",
+            "name": "[variables('AzureSentinelConnectionName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "api": {
+                    "id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/azuresentinel')]"
+                }
+            }
+        }
+    ]
 }
