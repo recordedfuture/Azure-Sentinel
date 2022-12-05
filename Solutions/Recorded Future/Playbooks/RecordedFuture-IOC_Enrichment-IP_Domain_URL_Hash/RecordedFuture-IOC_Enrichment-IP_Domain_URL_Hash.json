@@ -375,27 +375,6 @@
                                         },
                                         "Case_4": {
                                             "actions": {
-                                                "Add_comment_to_incident_(V3)": {
-                                                    "inputs": {
-                                                        "body": {
-                                                            "incidentArmId": "@triggerBody()?['object']?['id']",
-                                                            "message": "<p>No Recorded Future IP Enrichment found for<br>\nIP:@{body('Parse_JSON_-_Ip')?['address']}</p>"
-                                                        },
-                                                        "host": {
-                                                            "connection": {
-                                                                "name": "@parameters('$connections')['azuresentinel']['connectionId']"
-                                                            }
-                                                        },
-                                                        "method": "post",
-                                                        "path": "/Incidents/Comment"
-                                                    },
-                                                    "runAfter": {
-                                                        "IP_Enrichment": [
-                                                            "Failed"
-                                                        ]
-                                                    },
-                                                    "type": "ApiConnection"
-                                                },
                                                 "Add_comment_to_incident_(V3)_-_IP": {
                                                     "inputs": {
                                                         "body": {
