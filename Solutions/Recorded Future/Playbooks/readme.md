@@ -17,7 +17,7 @@ For more information see: [How to Apply Elite Intelligence to Microsoft Azure Se
 
 
 # Use cases
-The playbooks provided in Recorded Future Solution support use case for detection and incident response.
+The playbooks provided in the Recorded Future Solution support use cases for detection and incident response.
 ## Detection - Risk list 
 
 The TIProcessor will pull the configured risk list from Recorded Future and write indicator in batches to Sentinels ThreatIntelligenceIndicator table. 
