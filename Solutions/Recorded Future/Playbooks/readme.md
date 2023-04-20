@@ -15,6 +15,21 @@ The Recorded Future Microsoft Sentinel Integration will supercharge Sentinel by 
 
 For more information see: [How to Apply Elite Intelligence to Microsoft Azure Sentinel](https://www.recordedfuture.com/microsoft-azure-sentinel-integration)
 
+
+# Use cases
+The playbooks provided in Recorded Future Solution support use case for detection and incident response.
+## Detection - Risk list 
+
+The TIProcessor will pull the configured risk list from Recorded Future and write indicator in batches to Sentinels ThreatIntelligenceIndicator table. 
+![](Images/2023-04-19-17-08-46.png)
+Analytic rules will correlate ThreatIntelligenceIndicators with logs provided to Sentinel and create alerts with will surface as incidents in Sentinel.
+![](Images/2023-04-19-17-46-32.png)
+
+## Response - Enrichment 
+
+Automation rules will trigger on each incident and enrich incidents with Recorded Future intelligence. 
+![](Images/2023-04-19-17-46-13.png)
+
 # Risk lists
 Risk lists is how we transfer accurate and current threat intelligence to Microsoft Sentinel as ThreatIntelligenceIndicators. Connect logs from your infrastructure in order to detect, prevent and triage security vulnerabilities.
 
@@ -133,18 +148,6 @@ Once successfully created one or more Analytic Rules that triggers alerts and in
 
 # Playbooks
 The playbooks are all part of the Recorded Future Intelligence Solution.
-
-Detection - Risk list simple flow
-
-The TIProcessor will pull the configured risk list from Recorded Future and write indicator in batches to Sentinels ThreatIntelligenceIndicator table. 
-![](Images/2023-04-19-17-08-46.png)
-Analytic rules will correlate ThreatIntelligenceIndicators with logs provided to Sentinel and create alerts with will surface as incidents in Sentinel.
-![](Images/2023-04-19-17-46-32.png)
-
-Response - Enrichment simple flow
-
-Automation rules will trigger on each incident and enrich incidents with Recorded Future intelligence. 
-![](Images/2023-04-19-17-46-13.png)
 
 ## ImportToSentinel
 
