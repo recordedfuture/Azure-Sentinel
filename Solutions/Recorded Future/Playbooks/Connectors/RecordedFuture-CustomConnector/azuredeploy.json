@@ -191,7 +191,7 @@
                                         "required": true,
                                         "type": "string",
                                         "default": "intelCard,risk,links",
-                                        "x-ms-visibility": "internal"
+                                        "x-ms-visibility": "advanced"
                                     },
                                     {
                                         "name": "IntelligenceCloud",
@@ -478,7 +478,7 @@
                                         "required": true,
                                         "type": "string",
                                         "default": "intelCard,risk,links",
-                                        "x-ms-visibility": "internal"
+                                        "x-ms-visibility": "advanced"
                                     },
                                     {
                                         "name": "IntelligenceCloud",
@@ -621,7 +621,7 @@
                                         "required": true,
                                         "type": "string",
                                         "default": "intelCard,risk,links",
-                                        "x-ms-visibility": "internal"
+                                        "x-ms-visibility": "advanced"
                                     },
                                     {
                                         "name": "IntelligenceCloud",
@@ -770,7 +770,7 @@
                                         "required": true,
                                         "type": "string",
                                         "default": "intelCard,risk,links",
-                                        "x-ms-visibility": "internal"
+                                        "x-ms-visibility": "advanced"
                                     },
                                     {
                                         "name": "IntelligenceCloud",
@@ -917,7 +917,7 @@
                                         "required": true,
                                         "type": "string",
                                         "default": "intelCard,risk,links",
-                                        "x-ms-visibility": "internal"
+                                        "x-ms-visibility": "advanced"
                                     },
                                     {
                                         "name": "IntelligenceCloud",
