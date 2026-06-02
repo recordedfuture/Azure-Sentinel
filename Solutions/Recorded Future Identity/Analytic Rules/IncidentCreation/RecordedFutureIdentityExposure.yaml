@@ -12,31 +12,31 @@ tactics:
   - CredentialAccess
 relevantTechniques: []
 query: |
-  RFI_PlaybookAlertResults_V2_CL
+  RecordedFutureIdentity_PlaybookAlertResults_CL
   | where TimeGenerated >= now(-15m)
 eventGroupingSettings:
   aggregationKind: AlertPerResult
 alertDetailsOverride:
-  alertDisplayNameFormat: 'Identity Exposure: {{panel_status_entity_name}} with priority: {{panel_status_priority}}'
+  alertDisplayNameFormat: 'Identity Exposure: {{panel_status_entity_name_s}} with priority: {{panel_status_priority_s}}'
   alertDescriptionFormat: |
     _Recorded Future Identity Alert_
 
-    **Rule Name:** {{panel_status_alert_rule.name}}
+    **Rule Name:** {{panel_status_alert_rule_name_s}}
 
-    **Alert ID:** {{playbook_alert_id}}
+    **Alert ID:** {{playbook_alert_id_s}}
 
-    **Evidence Summary:** {{alert_description}}
+    **Evidence Summary:** {{alert_description_s}}
 
     Investigate this identity by searching in log analytics workspace for the Alert ID.
   alertDynamicProperties: []
 customDetails:
   RFLabel: Type
-  AlertId: playbook_alert_id
+  AlertId: playbook_alert_id_s
 entityMappings:
   - entityType: Account
     fieldMappings:
       - identifier: Name
-        columnName: panel_status_entity_name
+        columnName: panel_status_entity_name_s
 incidentConfiguration:
   createIncident: true
   groupingConfiguration:
@@ -48,5 +48,6 @@ incidentConfiguration:
       - Account
     groupByAlertDetails: []
     groupByCustomDetails: []
-version: 1.1.0
+version: 1.0.0
 kind: NRT
+
