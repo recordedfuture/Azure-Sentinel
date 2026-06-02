@@ -36,17 +36,13 @@ jobs:
           git config user.name "${{ github.event.comment.user.login }}"
           git config user.email "${{ github.event.comment.user.login }}@users.noreply.github.com"
 
-      - name: Get cache week key
-        id: week
-        run: echo "week=$(date +%Y-%U)" >> "$GITHUB_OUTPUT"
-
       - name: Restore git cache
         id: cache
         uses: actions/cache@v5
         with:
           path: .git/objects
-          key: git-objects-${{ runner.os }}-${{ steps.week.outputs.week }}
-          restore-keys: git-objects-${{ runner.os }}-
+          key: git-objects-${{ runner.os }}
+          save-always: true
 
       - name: Fetch branches
         run: |
