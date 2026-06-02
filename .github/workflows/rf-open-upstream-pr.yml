@@ -38,9 +38,9 @@ jobs:
 
       - name: Fetch branches
         run: |
-          git fetch origin master --depth=1 --filter=tree:0
-          git fetch origin master-rf --depth=50 --filter=tree:0
-          git fetch origin ${{ steps.pr-info.outputs.branch }} --depth=50 --filter=tree:0
+          git fetch origin master --depth=1 --filter=blob:none
+          git fetch origin master-rf --depth=50 --filter=blob:none
+          git fetch origin ${{ steps.pr-info.outputs.branch }} --depth=50 --filter=blob:none
           git checkout master-rf
 
       - name: Derive upstream branch name
