@@ -33,8 +33,8 @@ jobs:
         run: |
           git init
           git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "${{ github.event.comment.user.login }}"
+          git config user.email "${{ github.event.comment.user.login }}@users.noreply.github.com"
 
       - name: Fetch branches
         run: |
