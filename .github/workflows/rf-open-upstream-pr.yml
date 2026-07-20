@@ -59,24 +59,25 @@ jobs:
           UPSTREAM="feat/${STRIPPED}"
           echo "upstream_branch=$UPSTREAM" >> "$GITHUB_OUTPUT"
 
-      - name: Delete upstream branch if it already exists
+      - name: Find existing upstream PR
+        id: existing-pr
         uses: actions/github-script@v8
         with:
           script: |
             const branch = '${{ steps.derive.outputs.upstream_branch }}';
-            try {
-              await github.rest.git.deleteRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: `heads/${branch}`,
-              });
-              core.info(`Deleted existing branch ${branch}.`);
-            } catch (e) {
-              if (e.status === 422 || e.status === 404) {
-                // Branch didn't exist — nothing to do
-              } else {
-                throw e;
-              }
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${branch}`,
+              state: 'open',
+            });
+            if (prs.length > 0) {
+              core.info(`Found existing open PR #${prs[0].number}: ${prs[0].html_url}`);
+              core.setOutput('pr_url', prs[0].html_url);
+              core.setOutput('pr_number', String(prs[0].number));
+            } else {
+              core.setOutput('pr_url', '');
+              core.setOutput('pr_number', '');
             }
 
       - name: Cherry-pick commits onto upstream branch
@@ -120,7 +121,7 @@ jobs:
         id: push
         run: |
           TMP_FILE=$(mktemp)
-          git push -u origin "${{ steps.derive.outputs.upstream_branch }}" 2>&1 | tee "$TMP_FILE"
+          git push --force-with-lease -u origin "${{ steps.derive.outputs.upstream_branch }}" 2>&1 | tee "$TMP_FILE"
           OUTPUT=$(cat "$TMP_FILE")
           rm -f "$TMP_FILE"
           PR_URL=$(echo "$OUTPUT" | grep -oE "https://github.com/.+/.+/pull/new/[^[:space:]]+" || true)
@@ -131,12 +132,20 @@ jobs:
         with:
           script: |
             const upstreamBranch = '${{ steps.derive.outputs.upstream_branch }}';
-            const prUrl = '${{ steps.push.outputs.pr_url }}';
+            const newPrUrl = '${{ steps.push.outputs.pr_url }}';
+            const existingPrUrl = '${{ steps.existing-pr.outputs.pr_url }}';
+            const existingPrNumber = '${{ steps.existing-pr.outputs.pr_number }}';
             const commitList = `${{ steps.cherry-pick.outputs.commit_list }}`;
 
-            const prLink = prUrl
-              ? `[Open PR towards Microsoft](${prUrl})`
-              : `https://github.com/${context.repo.owner}/${context.repo.repo}/compare/${upstreamBranch}`;
+            // Prefer existing open PR; fall back to new PR creation URL or compare link
+            let prLink;
+            if (existingPrUrl) {
+              prLink = `[View existing PR #${existingPrNumber} towards Microsoft](${existingPrUrl}) (updated with force-push)`;
+            } else if (newPrUrl) {
+              prLink = `[Open PR towards Microsoft](${newPrUrl})`;
+            } else {
+              prLink = `https://github.com/${context.repo.owner}/${context.repo.repo}/compare/${upstreamBranch}`;
+            }
 
             const body = [
               '`/upstream-pr` succeeded. :rocket:',

@@ -35,16 +35,24 @@ UPSTREAM_BRANCH="feat/${STRIPPED}"
 # ── check if upstream branch already exists ───────────────────────────────────
 
 LOCAL_EXISTS=false
-REMOTE_EXISTS=false
 
-git show-ref --verify --quiet "refs/heads/$UPSTREAM_BRANCH"          && LOCAL_EXISTS=true  || true
-git show-ref --verify --quiet "refs/remotes/origin/$UPSTREAM_BRANCH" && REMOTE_EXISTS=true || true
+git show-ref --verify --quiet "refs/heads/$UPSTREAM_BRANCH" && LOCAL_EXISTS=true || true
 
-if $LOCAL_EXISTS || $REMOTE_EXISTS; then
-  read -r -p "$(bold "Branch '$UPSTREAM_BRANCH' already exists. Overwrite? [y/N] ")" CONFIRM
+if $LOCAL_EXISTS; then
+  read -r -p "$(bold "Local branch '$UPSTREAM_BRANCH' already exists. Overwrite? [y/N] ")" CONFIRM
   [[ "$CONFIRM" =~ ^[Yy]$ ]] || abort "Aborted."
-  $LOCAL_EXISTS  && git branch -D "$UPSTREAM_BRANCH"
-  $REMOTE_EXISTS && git push origin --delete "$UPSTREAM_BRANCH" 2>/dev/null || true
+  git branch -D "$UPSTREAM_BRANCH"
+fi
+
+# Check for an existing open upstream PR so we can link to it instead of a new one
+EXISTING_PR_URL=""
+if command -v gh &>/dev/null; then
+  EXISTING_PR_URL=$(gh pr list \
+    --repo "$(git remote get-url origin | sed 's|.*github.com[:/]\(.*\)\.git|\1|;s|.*github.com[:/]\(.*\)|\1|')" \
+    --head "$UPSTREAM_BRANCH" \
+    --state open \
+    --json url \
+    --jq '.[0].url' 2>/dev/null || true)
 fi
 
 # ── run shared logic ──────────────────────────────────────────────────────────
@@ -61,19 +69,24 @@ echo ""
 # ── push and open PR URL ──────────────────────────────────────────────────────
 
 TMP_FILE=$(mktemp)
-git push -u origin "$UPSTREAM_BRANCH" 2>&1 | tee "$TMP_FILE"
+git push --force-with-lease -u origin "$UPSTREAM_BRANCH" 2>&1 | tee "$TMP_FILE"
 OUTPUT=$(cat "$TMP_FILE")
 rm -f "$TMP_FILE"
 
-PR_URL=$(echo "$OUTPUT" | grep -oE "https://github.com/.+/.+/pull/new/[^[:space:]]+" || true)
-
 echo ""
-if [[ -n "$PR_URL" ]]; then
-  green "Opening PR creation URL..."
-  open "$PR_URL"
+if [[ -n "$EXISTING_PR_URL" ]]; then
+  green "Existing upstream PR updated (force-pushed):"
+  echo "  $EXISTING_PR_URL"
+  open "$EXISTING_PR_URL"
 else
-  bold "Branch pushed. Open a PR manually at:"
-  echo "  https://github.com/recordedfuture/Azure-Sentinel/compare/$UPSTREAM_BRANCH"
+  PR_URL=$(echo "$OUTPUT" | grep -oE "https://github.com/.+/.+/pull/new/[^[:space:]]+" || true)
+  if [[ -n "$PR_URL" ]]; then
+    green "Opening PR creation URL..."
+    open "$PR_URL"
+  else
+    bold "Branch pushed. Open a PR manually at:"
+    echo "  https://github.com/recordedfuture/Azure-Sentinel/compare/$UPSTREAM_BRANCH"
+  fi
 fi
 
 green "\nDone. Upstream branch: $UPSTREAM_BRANCH"
