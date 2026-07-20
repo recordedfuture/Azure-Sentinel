@@ -37,13 +37,6 @@ jobs:
           git config user.name "${{ github.event.comment.user.login }}"
           git config user.email "${{ github.event.comment.user.login }}@users.noreply.github.com"
 
-      - name: Restore git cache
-        id: cache
-        uses: actions/cache/restore@v5
-        with:
-          path: .git/objects
-          key: git-objects-${{ runner.os }}
-
       - name: Fetch branches
         run: |
           git fetch origin master --depth=1 --filter=blob:none
@@ -170,10 +163,3 @@ jobs:
               issue_number: context.issue.number,
               body,
             });
-
-      - name: Save git cache
-        if: always()
-        uses: actions/cache/save@v5
-        with:
-          path: .git/objects
-          key: git-objects-${{ runner.os }}
