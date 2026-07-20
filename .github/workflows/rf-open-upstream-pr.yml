@@ -14,6 +14,7 @@ jobs:
       contents: write
       pull-requests: write
       issues: write
+      actions: write
 
     steps:
       - name: Get PR branch name
@@ -35,6 +36,13 @@ jobs:
           git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           git config user.name "${{ github.event.comment.user.login }}"
           git config user.email "${{ github.event.comment.user.login }}@users.noreply.github.com"
+
+      - name: Restore git cache
+        id: cache
+        uses: actions/cache/restore@v5
+        with:
+          path: .git/objects
+          key: git-objects-${{ runner.os }}
 
       - name: Fetch branches
         run: |
@@ -162,3 +170,10 @@ jobs:
               issue_number: context.issue.number,
               body,
             });
+
+      - name: Save git cache
+        if: always()
+        uses: actions/cache/save@v5
+        with:
+          path: .git/objects
+          key: git-objects-${{ runner.os }}
