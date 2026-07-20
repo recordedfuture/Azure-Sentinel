@@ -36,14 +36,6 @@ jobs:
           git config user.name "${{ github.event.comment.user.login }}"
           git config user.email "${{ github.event.comment.user.login }}@users.noreply.github.com"
 
-      - name: Restore git cache
-        id: cache
-        uses: actions/cache@v5
-        with:
-          path: .git/objects
-          key: git-objects-${{ runner.os }}
-          save-always: true
-
       - name: Fetch branches
         run: |
           git fetch origin master --depth=1 --filter=blob:none
@@ -58,6 +50,10 @@ jobs:
           STRIPPED="${CURRENT#rf/}"
           UPSTREAM="feat/${STRIPPED}"
           echo "upstream_branch=$UPSTREAM" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch upstream branch if exists
+        run: |
+          git fetch origin "${{ steps.derive.outputs.upstream_branch }}" --depth=50 --filter=blob:none 2>/dev/null || true
 
       - name: Find existing upstream PR
         id: existing-pr
@@ -122,12 +118,15 @@ jobs:
         run: |
           TMP_FILE=$(mktemp)
           git push --force-with-lease -u origin "${{ steps.derive.outputs.upstream_branch }}" 2>&1 | tee "$TMP_FILE"
+          EXIT_CODE=${PIPESTATUS[0]}
           OUTPUT=$(cat "$TMP_FILE")
           rm -f "$TMP_FILE"
           PR_URL=$(echo "$OUTPUT" | grep -oE "https://github.com/.+/.+/pull/new/[^[:space:]]+" || true)
           echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
+          exit $EXIT_CODE
 
       - name: Comment success and close PR
+        if: success()
         uses: actions/github-script@v8
         with:
           script: |
