@@ -161,8 +161,8 @@ function GetPackageVersion($defaultPackageVersion, $offerId, $offerDetails, $pac
         [int]$defaultBuild = $defaultBuild
         
         if ($userInputMajor -ge 3) {
-            # Version 3.x.x or higher: use user input if minor and build are greater than default
-            if ($userInputMinor -ge $defaultMinor -and $userInputBuild -gt $defaultBuild) {
+            # Version 3.x.x or higher: use user input if it is >= default version. RF hax! not sure if legit
+            if ([version]$userInputPackageVersion -ge [version]$defaultPackageVersion) {
                 $setPackageVersion = $userInputPackageVersion
                 if ($null -eq $offerDetails) {
                     Write-Host "Package version set to $setPackageVersion"
