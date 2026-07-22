@@ -63,7 +63,7 @@ jobs:
           script: |
             const branch = '${{ steps.derive.outputs.upstream_branch }}';
             const { data: prs } = await github.rest.pulls.list({
-              owner: context.repo.owner,
+              owner: 'Azure',
               repo: context.repo.repo,
               head: `${context.repo.owner}:${branch}`,
               state: 'open',
