@@ -42,12 +42,12 @@ def step_law_has_new_row(context, minutes, table):
     )
 
 
+@then('table "{table}" has no new rows within {minutes:d} minute')
 @then('table "{table}" has no new rows within {minutes:d} minutes')
 def step_law_has_no_new_row(context, table, minutes):
     anchor = context.trigger_time.strftime("%Y-%m-%dT%H:%M:%SZ")
     kql = f'{table} | where TimeGenerated >= datetime("{anchor}") | limit 1'
-    # Use config wait (not the Gherkin minutes) so it can be tuned without changing the feature file
-    wait_seconds = config.LAW_NEGATIVE_WAIT_SECONDS
+    wait_seconds = minutes * 60
     print(f"\n  Waiting {wait_seconds}s to confirm no rows appear in {table}...")
     time.sleep(wait_seconds)
     rows = az_client.query_law(kql)

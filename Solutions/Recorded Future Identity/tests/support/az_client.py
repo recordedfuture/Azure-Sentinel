@@ -18,14 +18,58 @@ class AzCliError(Exception):
     pass
 
 
+def _extract_arm_error(stderr: str) -> str:
+    """
+    Parse ARM/az CLI stderr and return a concise human-readable message.
+    Falls back to the raw stderr if parsing fails.
+    """
+    import re
+    raw = stderr.strip()
+
+    # az CLI prefixes JSON errors with "ERROR: "
+    json_str = raw.removeprefix("ERROR:").strip()
+    try:
+        data = json.loads(json_str)
+        err = data.get("error", data)
+        msg = err.get("message", "")
+        details = err.get("details", [])
+        if details and isinstance(details, list):
+            msg = details[0].get("message", msg)
+        if msg:
+            if (
+                "roleassignment" in msg.lower()
+                or "authorization" in msg.lower()
+                or "AuthorizationFailed" in err.get("code", "")
+            ):
+                msg += (
+                    "\n\n  Hint: this account lacks permission to assign roles on the DCR. "
+                    "Re-run `az login` with an admin account for first-time setup (see tests/README.md)."
+                )
+            return msg
+    except (json.JSONDecodeError, AttributeError):
+        pass
+
+    # Structured but non-JSON: look for common ARM error patterns in the text
+    match = re.search(r"\((\w+)\) (.+?)(?:\nCode:|$)", raw, re.DOTALL)
+    if match:
+        code, msg = match.group(1), match.group(2).strip()
+        result = f"{code}: {msg[:300]}"
+        if "roleassignment" in msg.lower() or "authorization" in msg.lower():
+            result += (
+                "\n\n  Hint: this account lacks permission to assign roles on the DCR. "
+                "Re-run `az login` with an admin account for first-time setup (see tests/README.md)."
+            )
+        return result
+
+    return raw[:500]
+
+
 def _run(*args, check=True) -> Optional[dict | list]:
     """Run `az <args> --output json` and return parsed output, or None."""
     cmd = ["az"] + list(args) + ["--output", "json"]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if check and result.returncode != 0:
-        raise AzCliError(
-            f"az {' '.join(args)} failed (rc={result.returncode}):\n{result.stderr.strip()}"
-        )
+        raise AzCliError(_extract_arm_error(result.stderr))
     stdout = result.stdout.strip()
     if not stdout:
         return None

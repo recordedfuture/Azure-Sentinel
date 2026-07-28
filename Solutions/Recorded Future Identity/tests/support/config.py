@@ -21,10 +21,6 @@ TEST_USER_OID = "2619357a-cdf4-401d-95df-ba756e4deed9"
 RF_GW_BASE = "https://api.recordedfuture.com/gw/azure-identity-qa"
 RF_TOKEN = os.environ["AZURE_IDENTITY_TOKEN_QA"]
 
-# TEST_ALERT_ID is selected dynamically at runtime in environment.py before_all.
-# It is stored on behave context.test_alert_id and must not be hardcoded here.
-TEST_ALERT_ID: str = ""  # populated at runtime
-
 # ── Logic App template ───────────────────────────────────────────────────────
 TEMPLATE_PATH = (
     Path(__file__).parents[2]
@@ -101,8 +97,6 @@ SCENARIO_PARAMS = {
 
 # Trigger timeout (seconds to wait for a run to leave "Running")
 RUN_TIMEOUT_SECONDS = 180
-# How long to poll for LAW rows to appear
+
 LAW_POLL_TIMEOUT_SECONDS = 300
 LAW_POLL_INTERVAL_SECONDS = 5
-# How long to wait before asserting LAW row is absent (negative assertion)
-LAW_NEGATIVE_WAIT_SECONDS = 60
