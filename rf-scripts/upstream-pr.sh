@@ -5,6 +5,10 @@ set -euo pipefail
 # Takes the current feature branch (based on master-rf) and prepares a clean
 # upstream branch based on master, then pushes and opens the PR creation URL.
 
+# TODO improvements:
+#  1. When updating existing feat/ branches, don't necessarily force push
+#  2. Run automatically on pushes to internal PRs that already had /upstream-pr on it
+
 MASTER_BRANCH="master"
 INTERNAL_BRANCH="master-rf"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
