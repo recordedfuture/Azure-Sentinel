@@ -1125,7 +1125,6 @@
                 },
                 "customDetails": {
                   "RuleName": "RuleName_s",
-                  "RFLabel": "SourceSystem",
                   "RuleId": "RuleId_s"
                 },
                 "alertDetailsOverride": {
@@ -1230,8 +1229,7 @@
                   "aggregationKind": "AlertPerResult"
                 },
                 "customDetails": {
-                  "RFLabel": "SourceSystem",
-                  "Category": "Category"
+                  "Category": "category"
                 },
                 "alertDetailsOverride": {
                   "alertDisplayNameFormat": "Alert: {{rule_label_s}}  - {{title_s}}",
