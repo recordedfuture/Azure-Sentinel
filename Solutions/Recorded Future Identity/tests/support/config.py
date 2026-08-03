@@ -11,6 +11,7 @@ SUBSCRIPTION_ID = "5129b3ff-c0c6-4e86-bd1c-70e5fcd579cf"
 RESOURCE_GROUP = "rf-erik"
 LAW_NAME = "ErikLogAnalyticWorkspace"
 LAW_WORKSPACE_ID = "7479cf3e-cc64-43f7-b440-9a7afd21b2fc"
+PORTAL_TENANT = "integrationsopsrecordedfutu.onmicrosoft.com"
 
 # ── Entra ID ─────────────────────────────────────────────────────────────────
 TEST_SECURITY_GROUP_ID = "006007f2-d235-4050-803d-599c32de9cc6"
@@ -100,3 +101,94 @@ RUN_TIMEOUT_SECONDS = 180
 
 LAW_POLL_TIMEOUT_SECONDS = 300
 LAW_POLL_INTERVAL_SECONDS = 5
+
+# ── v3.0 Identity API ─────────────────────────────────────────────────────────
+
+V3_SEARCH_TEMPLATE_PATH = (
+    Path(__file__).parents[2]
+    / "Playbooks"
+    / "v3.0"
+    / "RFI-search-workforce-user"
+    / "azuredeploy.json"
+)
+V3_LOOKUP_TEMPLATE_PATH = (
+    Path(__file__).parents[2]
+    / "Playbooks"
+    / "v3.0"
+    / "RFI-lookup-and-save-user"
+    / "azuredeploy.json"
+)
+
+RFI_CUSTOM_CONNECTOR_V3 = "RFI-CustomConnector-0-1-0"
+
+# Domain authorized for the QA RF token for credential search AND lookup.
+V3_ORG_DOMAIN = "norsegods.online"
+
+# Domain used for the UUID fake test email injected into fake search results.
+# Must be authorized for the QA RF token so the lookup API accepts it.
+V3_TEST_EMAIL_DOMAIN = "norsegods.online"
+
+# Log Analytics tables written by the v3.0 playbooks
+V3_LAW_TABLES = [
+    "RFI_CredentialDumps_V2_CL",
+    "RFI_MalwareLogs_V2_CL",
+    "RFI_UsersLookupResults_V2_CL",
+]
+
+V3_LOGIC_APP_NAMES = {
+    "v3_workforce":         f"rfi-id-v3-{_TODAY}-{_SUFFIX}-workforce",
+    "v3_workforce_nogroup": f"rfi-id-v3-{_TODAY}-{_SUFFIX}-nogroup",
+    "v3_lookup":            f"rfi-id-v3-{_TODAY}-{_SUFFIX}-lookup",
+}
+
+# ARM parameters per v3 scenario.
+# NOTE: test_email is a test-only key populated at runtime in environment.py
+# from context.v3_test_email. It is NOT an ARM parameter — environment.py
+# pops it before calling az deployment group create and passes it to
+# patch_search_template().
+V3_SCENARIO_PARAMS = {
+    "v3_workforce": {
+        "PlaybookName":                              V3_LOGIC_APP_NAMES["v3_workforce"],
+        "workspace_name":                            LAW_NAME,
+        "Playbook-Name-lookup-and-save-user":        V3_LOGIC_APP_NAMES["v3_lookup"],
+        "Playbook-Name-add-EntraID-security-group-user": "RFI-add-EntraID-security-group-user",
+        "Playbook-Name-confirm-EntraID-risky-user":  "RFI-confirm-EntraID-risky-user",
+        "create_role_assignment":                    True,
+    },
+    "v3_workforce_nogroup": {
+        "PlaybookName":                              V3_LOGIC_APP_NAMES["v3_workforce_nogroup"],
+        "workspace_name":                            LAW_NAME,
+        "Playbook-Name-lookup-and-save-user":        V3_LOGIC_APP_NAMES["v3_lookup"],
+        "Playbook-Name-add-EntraID-security-group-user": "RFI-add-EntraID-security-group-user",
+        "Playbook-Name-confirm-EntraID-risky-user":  "RFI-confirm-EntraID-risky-user",
+        "create_role_assignment":                    True,
+    },
+}
+
+# Required API connections per v3 scenario key: {prefix: required}
+# The v3 search playbooks create two connections:
+#   - azuremonitorlogs-<name>: for the LAW dedup query — requires OAuth consent
+#   - recordedfutureidenti-<name>: for the RF Identity API — api_key injected
+#     programmatically in _setup_v3_rfi_connection(), no manual auth needed
+V3_REQUIRED_CONN_PREFIXES = {
+    "v3_workforce":         {"Azuremonitorlogs": True, "Recordedfutureidenti": True},
+    "v3_workforce_nogroup": {"Azuremonitorlogs": True, "Recordedfutureidenti": True},
+}
+
+# PBA required connections (kept here alongside V3 for symmetry)
+PBA_REQUIRED_CONN_PREFIXES = {
+    "nouser":   {"Azuread": True,  "Azureadip": False, "Azuremonitorlogs": True},
+    "baseuser": {"Azuread": True,  "Azureadip": False, "Azuremonitorlogs": True},
+    "entra":    {"Azuread": True,  "Azureadip": True,  "Azuremonitorlogs": True},
+    "nolaw":    {"Azuread": True,  "Azureadip": False, "Azuremonitorlogs": False},
+}
+
+# ── Merged lookups (used by step definitions) ─────────────────────────────────
+# Single source of truth for any step that needs to look up a logic app name
+# or its required connections by scenario key.
+ALL_LOGIC_APP_NAMES: dict[str, str] = {**LOGIC_APP_NAMES, **V3_LOGIC_APP_NAMES}
+ALL_REQUIRED_CONN_PREFIXES: dict[str, dict[str, bool]] = {
+    **PBA_REQUIRED_CONN_PREFIXES,
+    **V3_REQUIRED_CONN_PREFIXES,
+}
+

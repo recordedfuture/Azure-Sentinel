@@ -61,7 +61,7 @@ def step_dismiss_risky(context):
 
 @when('I trigger logic app "{key}" and wait for completion')
 def step_trigger_and_wait(context, key):
-    name = config.LOGIC_APP_NAMES[key]
+    name = config.ALL_LOGIC_APP_NAMES[key]
     print(f"\n  Triggering {name} ...")
     context.trigger_time = az_client.trigger_logic_app(name)
     print(f"  Triggered at {context.trigger_time.isoformat()}, waiting up to {config.RUN_TIMEOUT_SECONDS}s ...")

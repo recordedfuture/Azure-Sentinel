@@ -1,3 +1,4 @@
+@pba
 Feature: RFI Alert Importer → Log Analytics Workspace
   Tests the RFI-Playbook-Alert-Importer-LAW logic app across four
   parameter configurations. Each scenario resets the pinned RF test

@@ -14,19 +14,12 @@ from behave import given
 
 from support import az_client, config
 
-_REQUIRED_CONN_PREFIXES = {
-    "nouser":   {"Azuread": True,  "Azureadip": False, "Azuremonitorlogs": True},
-    "baseuser": {"Azuread": True,  "Azureadip": False, "Azuremonitorlogs": True},
-    "entra":    {"Azuread": True,  "Azureadip": True,  "Azuremonitorlogs": True},
-    "nolaw":    {"Azuread": True,  "Azureadip": False, "Azuremonitorlogs": False},
-}
-
 
 @given('API connections for logic app "{key}" are authorized')
 def step_connections_authorized(context, key):
-    la_name = config.LOGIC_APP_NAMES[key]
+    la_name = config.ALL_LOGIC_APP_NAMES[key]
     bad = []
-    for prefix, required in _REQUIRED_CONN_PREFIXES.get(key, {}).items():
+    for prefix, required in config.ALL_REQUIRED_CONN_PREFIXES.get(key, {}).items():
         conn = f"{prefix}-{la_name}"
         status = az_client.get_connection_status(conn)
         marker = "OK" if status == "Connected" else status or "not found"
