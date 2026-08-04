@@ -20,6 +20,16 @@ _GW_BASE = config.RF_GW_BASE
 _PUBLIC_BASE = "https://api.recordedfuture.com/playbook-alert"
 
 
+def check_reachable() -> None:
+    """
+    Lightweight API ping — verifies the RF gateway is reachable and the token works.
+    Called by the shared step_rf_api_reachable step.
+    """
+    items = get_new_pba_via_gateway()
+    assert items is not None, "RF gateway returned no response"
+    print(f"\n  RF gateway reachable — {len(items)} New PBAs available")
+
+
 def get_new_pba_via_gateway() -> list[dict]:
     """
     Call the gateway search endpoint (exactly as the Logic App does) and

@@ -1,45 +1,13 @@
 """
-Assertion steps for run status, LAW rows, RF alert status, and Entra ID state.
-"""
-import os
-import sys
-import time
+Identity-specific assertion steps.
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+The shared steps (run_status, law_has_new_row) are loaded via steps/__init__.py.
+"""
+import time
 
 from behave import then
 
 from support import az_client, config, rf_client
-
-
-@then('the logic app run status is "{expected}"')
-def step_run_status(context, expected):
-    actual = context.run["properties"]["status"]
-    assert actual == expected, (
-        f"Expected run status '{expected}', got '{actual}'. "
-        f"Run: {context.run['name']}"
-    )
-
-
-@then('within {minutes:d} minutes table "{table}" has at least 1 new row')
-def step_law_has_new_row(context, minutes, table):
-    # Anchor to just before the trigger so we don't pick up pre-existing rows
-    anchor = context.trigger_time.strftime("%Y-%m-%dT%H:%M:%SZ")
-    kql = f'{table} | where TimeGenerated >= datetime("{anchor}") | limit 1'
-    timeout = minutes * 60
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        rows = az_client.query_law(kql)
-        if rows:
-            print(f"\n  Found {len(rows)} new row(s) in {table} after {anchor}")
-            return
-        remaining = int(deadline - time.time())
-        print(f"\n  No rows yet in {table}, retrying ({remaining}s remaining)...")
-        time.sleep(config.LAW_POLL_INTERVAL_SECONDS)
-    raise AssertionError(
-        f"Table '{table}' has no new rows after {minutes} minutes "
-        f"(anchored to {anchor})"
-    )
 
 
 @then('table "{table}" has no new rows within {minutes:d} minute')
@@ -68,7 +36,6 @@ def step_rf_alert_status(context, expected):
 
 @then('the test user is a member of security group "{group_id}"')
 def step_user_in_group(context, group_id):
-    # Poll for up to 30s — Entra group membership can take a moment to propagate
     deadline = time.time() + 30
     while time.time() < deadline:
         if az_client.is_group_member(group_id):
@@ -83,7 +50,6 @@ def step_user_in_group(context, group_id):
 
 @then('the test user is not a member of security group "{group_id}"')
 def step_user_not_in_group(context, group_id):
-    # Poll for up to 30s — removal from a prior scenario may still be propagating
     deadline = time.time() + 30
     while time.time() < deadline:
         if not az_client.is_group_member(group_id):
@@ -97,7 +63,7 @@ def step_user_not_in_group(context, group_id):
 
 
 @then('if Entra ID P1/P2 is available the test user is marked as confirmed compromised')
-def step_risky_user_if_available(context, ):
+def step_risky_user_if_available(context):
     state = az_client.get_risky_user_state()
     if state is None:
         context.scenario.skip(
@@ -115,7 +81,6 @@ def step_risky_user_if_available(context, ):
 def step_user_not_risky(context):
     state = az_client.get_risky_user_state()
     if state is None:
-        # No P1/P2 or no permission — can't assert either way, treat as pass
         print("\n  Risky user check skipped (no P1/P2 or permission)")
         return
     assert state != "confirmedCompromised", (

@@ -1,17 +1,19 @@
 """
-Thin wrapper around the `az` CLI.
+Shared Azure/ARM client for RF E2E test suites.
 
-All functions call `az ... --output json` via subprocess and return parsed
-Python objects (dict / list / None).  Errors raise AzCliError.
+Provides thin wrappers around `az` CLI and ARM REST API calls that are
+common to both the Identity and Sentinel test suites. Suite-specific
+functions (Entra ID, Sentinel incidents, custom connector setup) live
+in the suite's own support/az_client.py alongside a
+`from rf_e2e_tests.az_client import *` import.
 """
 import json
-import os
 import subprocess
 import time
 from datetime import datetime, timezone
 from typing import Optional
 
-from . import config
+from . import config_base as config
 
 
 class AzCliError(Exception):
@@ -26,7 +28,6 @@ def _extract_arm_error(stderr: str) -> str:
     import re
     raw = stderr.strip()
 
-    # az CLI prefixes JSON errors with "ERROR: "
     json_str = raw.removeprefix("ERROR:").strip()
     try:
         data = json.loads(json_str)
@@ -43,13 +44,12 @@ def _extract_arm_error(stderr: str) -> str:
             ):
                 msg += (
                     "\n\n  Hint: this account lacks permission to assign roles on the DCR. "
-                    "Re-run `az login` with an admin account for first-time setup (see tests/README.md)."
+                    "Re-run `az login` with an admin account for first-time setup (see README.md)."
                 )
             return msg
     except (json.JSONDecodeError, AttributeError):
         pass
 
-    # Structured but non-JSON: look for common ARM error patterns in the text
     match = re.search(r"\((\w+)\) (.+?)(?:\nCode:|$)", raw, re.DOTALL)
     if match:
         code, msg = match.group(1), match.group(2).strip()
@@ -57,7 +57,7 @@ def _extract_arm_error(stderr: str) -> str:
         if "roleassignment" in msg.lower() or "authorization" in msg.lower():
             result += (
                 "\n\n  Hint: this account lacks permission to assign roles on the DCR. "
-                "Re-run `az login` with an admin account for first-time setup (see tests/README.md)."
+                "Re-run `az login` with an admin account for first-time setup (see README.md)."
             )
         return result
 
@@ -123,8 +123,6 @@ def deploy_logic_app(
     rg: str = config.RESOURCE_GROUP,
 ) -> None:
     """Deploy via ARM. params is a flat {key: value} dict."""
-    # Encode as ARM inline JSON object to avoid stdin contention when
-    # multiple deployments run in parallel (key=value form reads stdin).
     arm_params = {k: {"value": v} for k, v in params.items()}
     inline_json = json.dumps(arm_params)
 
@@ -139,14 +137,12 @@ def deploy_logic_app(
     print(f"  Deployed {params.get('PlaybookName', '?')}")
 
 
-def disable_logic_app(name: str, rg: str = config.RESOURCE_GROUP) -> None:
-    """Disable a logic app by PUTting the full workflow body back with state=Disabled."""
-    _set_logic_app_state(name, "Disabled", rg)
-
-
 def enable_logic_app(name: str, rg: str = config.RESOURCE_GROUP) -> None:
-    """Enable a logic app by PUTting the full workflow body back with state=Enabled."""
     _set_logic_app_state(name, "Enabled", rg)
+
+
+def disable_logic_app(name: str, rg: str = config.RESOURCE_GROUP) -> None:
+    _set_logic_app_state(name, "Disabled", rg)
 
 
 def _set_logic_app_state(name: str, state: str, rg: str) -> None:
@@ -157,7 +153,7 @@ def _set_logic_app_state(name: str, state: str, rg: str) -> None:
     )
     body = _rest("GET", url, check=False)
     if not body:
-        return  # Doesn't exist, nothing to do
+        return
     body["properties"]["state"] = state
     for key in ("id", "name", "type"):
         body.pop(key, None)
@@ -193,7 +189,7 @@ def _list_runs(name: str, rg: str = config.RESOURCE_GROUP) -> list:
 def wait_for_run(
     name: str,
     after: datetime,
-    timeout: int = config.RUN_TIMEOUT_SECONDS,
+    timeout: int = 180,
     rg: str = config.RESOURCE_GROUP,
 ) -> dict:
     """
@@ -245,7 +241,6 @@ def query_law(kql: str, workspace: str = config.LAW_WORKSPACE_ID) -> list:
     )
     if result is None:
         return []
-    # az returns either a list directly or {"tables": [...]}
     if isinstance(result, list):
         return result
     tables = result.get("tables", [])
@@ -253,117 +248,6 @@ def query_law(kql: str, workspace: str = config.LAW_WORKSPACE_ID) -> list:
         return []
     cols = [c["name"] for c in tables[0]["columns"]]
     return [dict(zip(cols, row)) for row in tables[0]["rows"]]
-
-
-# ── Entra ID ──────────────────────────────────────────────────────────────────
-
-def is_group_member(
-    group_id: str = config.TEST_SECURITY_GROUP_ID,
-    user_oid: str = config.TEST_USER_OID,
-) -> bool:
-    members = _run(
-        "ad", "group", "member", "list",
-        "--group", group_id,
-        "--query", "[].id",
-        check=False,
-    )
-    return user_oid in (members or [])
-
-
-def remove_group_member(
-    group_id: str = config.TEST_SECURITY_GROUP_ID,
-    user_oid: str = config.TEST_USER_OID,
-) -> None:
-    _run(
-        "ad", "group", "member", "remove",
-        "--group", group_id,
-        "--member-id", user_oid,
-        check=False,  # OK if not a member
-    )
-
-
-def get_risky_user_state(user_oid: str = config.TEST_USER_OID) -> Optional[str]:
-    """
-    Returns riskState string, or None if:
-    - The tenant has no Identity Protection (P1/P2 licence), or
-    - The CLI token lacks IdentityRiskyUser.Read.All permission, or
-    - The user is not in the riskyUsers list.
-    A None return causes the assertion step to skip rather than fail.
-    """
-    sub = config.SUBSCRIPTION_ID
-    url = f"https://graph.microsoft.com/beta/riskyUsers/{user_oid}"
-    result = _rest("GET", url, check=False)
-    if not result or "riskState" not in result:
-        return None
-    return result["riskState"]
-
-
-def dismiss_risky_user(user_oid: str = config.TEST_USER_OID) -> None:
-    url = "https://graph.microsoft.com/beta/riskyUsers/dismiss"
-    _rest("POST", url, {"userIds": [user_oid]}, check=False)
-
-
-def setup_rfi_test_connection(
-    connection_name: str,
-    rf_api_key: str,
-    rg: str = config.RESOURCE_GROUP,
-) -> None:
-    """
-    Create (or update) a dedicated RFI Custom Connector connection with the
-    given RF API key, then rewire all test logic apps to use it.
-    This avoids touching the shared 'RFI-CustomConnector-0-2-0' connection.
-    """
-    sub = config.SUBSCRIPTION_ID
-    # Get location from resource group
-    rg_info = _run("group", "show", "--name", rg)
-    location = rg_info["location"]
-
-    custom_api_id = (
-        f"/subscriptions/{sub}/resourceGroups/{rg}"
-        f"/providers/Microsoft.Web/customApis/RFI-CustomConnector-0-2-0"
-    )
-    conn_url = (
-        f"https://management.azure.com/subscriptions/{sub}/resourceGroups/{rg}"
-        f"/providers/Microsoft.Web/connections/{connection_name}?api-version=2016-06-01"
-    )
-
-    # Create / update the connection
-    _rest("PUT", conn_url, {
-        "location": location,
-        "properties": {
-            "api": {"id": custom_api_id},
-            "displayName": connection_name,
-            "parameterValues": {"api_key": rf_api_key},
-        },
-    })
-
-    # Rewire each test logic app to use this connection
-    for key, la_name in config.LOGIC_APP_NAMES.items():
-        la_url = (
-            f"https://management.azure.com/subscriptions/{sub}/resourceGroups/{rg}"
-            f"/providers/Microsoft.Logic/workflows/{la_name}?api-version=2016-06-01"
-        )
-        wf = _rest("GET", la_url, check=False)
-        if not wf:
-            continue
-        conn_ref = (
-            wf.get("properties", {})
-            .get("parameters", {})
-            .get("$connections", {})
-            .get("value", {})
-            .get("rfi-customconnector-0-2-0")
-        )
-        if conn_ref is None:
-            continue
-        conn_ref["connectionId"] = (
-            f"/subscriptions/{sub}/resourceGroups/{rg}"
-            f"/providers/Microsoft.Web/connections/{connection_name}"
-        )
-        conn_ref["connectionName"] = connection_name
-        for k in ("id", "name", "type"):
-            wf.pop(k, None)
-        _rest("PUT", la_url, wf, check=False)
-        print(f"  Rewired {la_name} → {connection_name}")
 
 
 # ── API connections ───────────────────────────────────────────────────────────
@@ -378,7 +262,7 @@ def get_connection_status(
         f"/providers/Microsoft.Web/connections/{connection_name}"
         f"?api-version=2016-06-01"
     )
-    result = _rest("GET", url)
+    result = _rest("GET", url, check=False)
     if not result:
         return None
     statuses = result.get("properties", {}).get("statuses", [])

@@ -1,30 +1,29 @@
 """
-Connection authorization check steps.
+Shared connection authorization step definition.
 
-Connection authorization (opening browser tabs, prompting) is handled
-in before_all. This step only verifies that required connections are
-Connected and fails fast with a clear message if not.
+Uses config.VALID_CONN_STATUSES to determine what counts as "authorized".
+Suites that use MSI-authenticated connections (which report "Ready" rather
+than "Connected") should set VALID_CONN_STATUSES = {"Connected", "Ready"}
+in their support/config.py.
 """
-import os
-import sys
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
 from behave import given
 
 from support import az_client, config
 
+_DEFAULT_VALID = {"Connected"}
+
 
 @given('API connections for logic app "{key}" are authorized')
 def step_connections_authorized(context, key):
+    valid = getattr(config, "VALID_CONN_STATUSES", _DEFAULT_VALID)
     la_name = config.ALL_LOGIC_APP_NAMES[key]
     bad = []
     for prefix, required in config.ALL_REQUIRED_CONN_PREFIXES.get(key, {}).items():
         conn = f"{prefix}-{la_name}"
         status = az_client.get_connection_status(conn)
-        marker = "OK" if status == "Connected" else status or "not found"
+        marker = status if status in valid else (status or "not found")
         print(f"\n  Connection {conn}: {marker}")
-        if required and status != "Connected":
+        if required and status not in valid:
             bad.append((conn, status))
 
     assert not bad, (
