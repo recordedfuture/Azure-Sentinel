@@ -52,8 +52,14 @@ fail_cherry_pick() {
   exit 1
 }
 
-patch_id_for() {
-  git show "$1" | git patch-id --stable | awk '{print $1}'
+# Prints one patch-id per line (oldest first) for all commits in the given
+# range, in a single batched invocation. This avoids spawning a separate
+# `git show` per commit, which is important on partial clones (--filter=
+# blob:none): each per-commit `git show` would otherwise trigger its own
+# unbatched, lazy on-demand blob fetch round-trip against origin, which can
+# be extremely slow on a large repository.
+patch_ids_for_range() {
+  git log --reverse -p "$1" | git patch-id --stable | awk '{print $1}'
 }
 
 # ── find commits on the current branch ───────────────────────────────────────
@@ -71,10 +77,13 @@ echo "$COMMIT_ONELINES"
 git fetch origin "$MASTER_BRANCH" --quiet >&2
 
 # ── check whether the upstream branch already exists on origin ──────────────
+# (ls-remote is a cheap, ref-only round-trip; avoids a second, potentially
+# slow, failing fetch attempt when the branch doesn't exist yet.)
 
 UPSTREAM_EXISTS=false
-if git fetch origin "$UPSTREAM_BRANCH" --quiet >&2 2>/dev/null; then
+if git ls-remote --exit-code --heads origin "$UPSTREAM_BRANCH" >/dev/null 2>&1; then
   UPSTREAM_EXISTS=true
+  git fetch origin "$UPSTREAM_BRANCH" --quiet >&2
 fi
 
 USE_INCREMENTAL=false
@@ -82,20 +91,19 @@ NEW_COMMIT_SHAS=""
 
 if $UPSTREAM_EXISTS; then
   # Commits already on the upstream branch, relative to master.
-  EXISTING_SHAS=$(git log --format="%H" --reverse "origin/${MASTER_BRANCH}..origin/${UPSTREAM_BRANCH}")
+  EXISTING_RANGE="origin/${MASTER_BRANCH}..origin/${UPSTREAM_BRANCH}"
+  FULL_RANGE="origin/${INTERNAL_BRANCH}..origin/${CURRENT_BRANCH}"
 
-  # Build order-preserving patch-id lists.
+  # Build order-preserving patch-id lists (batched, not per-commit).
   FULL_PATCH_IDS=()
-  while IFS= read -r sha; do
-    FULL_PATCH_IDS+=("$(patch_id_for "$sha")")
-  done <<< "$COMMIT_SHAS"
+  while IFS= read -r pid; do
+    FULL_PATCH_IDS+=("$pid")
+  done < <(patch_ids_for_range "$FULL_RANGE")
 
   EXISTING_PATCH_IDS=()
-  if [[ -n "$EXISTING_SHAS" ]]; then
-    while IFS= read -r sha; do
-      EXISTING_PATCH_IDS+=("$(patch_id_for "$sha")")
-    done <<< "$EXISTING_SHAS"
-  fi
+  while IFS= read -r pid; do
+    EXISTING_PATCH_IDS+=("$pid")
+  done < <(patch_ids_for_range "$EXISTING_RANGE")
 
   # Check that EXISTING_PATCH_IDS is an in-order prefix of FULL_PATCH_IDS.
   PREFIX_MATCHES=true
