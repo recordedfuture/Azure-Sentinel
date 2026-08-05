@@ -26,7 +26,6 @@ temporary file for use with `az deployment group create`, then deleted.
 """
 import copy
 import json
-import tempfile
 from typing import Optional
 
 # ── Action name constants ──────────────────────────────────────────────────────
@@ -282,16 +281,3 @@ def patch_lookup_template(
             if "customApis" in api_id:
                 resource["properties"]["parameterValues"] = {"api_key": rf_api_key}
     return t
-
-
-def write_temp(template: dict) -> str:
-    """
-    Serialise *template* to a named temp file and return its path.
-    The caller is responsible for deleting the file after use.
-    """
-    f = tempfile.NamedTemporaryFile(
-        mode="w", suffix=".json", delete=False, prefix="rfi-v3-test-"
-    )
-    json.dump(template, f, indent=2)
-    f.close()
-    return f.name

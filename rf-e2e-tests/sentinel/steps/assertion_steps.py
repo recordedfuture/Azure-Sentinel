@@ -72,11 +72,6 @@ def step_law_has_pinned_playbook_alert_row(context, minutes, table, column):
     context.pinned_playbook_alert_row = row
 
 
-@then('within {minutes:d} minutes table "{table}" has a row where "{column}" equals the pinned portal alert id')
-def step_law_has_pinned_portal_alert_row(context, minutes, table, column):
-    _wait_for_specific_row(context, table, column, context.test_portal_alert_id, minutes)
-
-
 def _wait_for_specific_row(context, table, column, value, minutes) -> dict:
     anchor = context.trigger_time.strftime("%Y-%m-%dT%H:%M:%SZ")
     kql = (

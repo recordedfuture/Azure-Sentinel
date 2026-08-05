@@ -5,7 +5,6 @@ Suite-specific config (tokens, app names, table names) lives in
 identity/support/config.py and sentinel/support/config.py respectively.
 Both import from here for the shared Azure environment values.
 """
-import os
 
 # TODO: allow overriding via env vars so tests can run against any environment
 # without editing source files. Suggested vars:
@@ -26,5 +25,4 @@ VALID_CONN_STATUSES = {"Connected"}
 
 # Shared timeouts (suites may override in their own config)
 RUN_TIMEOUT_SECONDS = 180
-LAW_POLL_TIMEOUT_SECONDS = 300
 LAW_POLL_INTERVAL_SECONDS = 5

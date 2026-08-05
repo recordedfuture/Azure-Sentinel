@@ -3,10 +3,6 @@ Sentinel-specific configuration.
 
 Shared Azure constants imported from rf_e2e_tests.config_base.
 Sentinel-specific constants (table names, app names, tokens, DCE/DCR) here.
-
-TODO: audit for unused variables — some DCR/stream/table constants may no
-longer be referenced directly now that the templates resolve them via
-reference() at ARM deploy time.
 """
 import os
 import uuid
@@ -21,7 +17,6 @@ from rf_e2e_tests.config_base import (  # noqa: F401
     LAW_WORKSPACE_ID,
     PORTAL_TENANT,
     RUN_TIMEOUT_SECONDS,
-    LAW_POLL_TIMEOUT_SECONDS,
     LAW_POLL_INTERVAL_SECONDS,
 )
 
@@ -53,25 +48,6 @@ TEMPLATE_THREATMAP_MALWARE_IMPORTER = (
     _SOLUTIONS / "Playbooks" / "ThreatHunting"
     / "RecordedFuture-ThreatMapMalware-Importer" / "azuredeploy.json"
 )
-
-# ── Sentinel DCE/DCR (deployed in rf-erik via azuredeploy-v2.json) ────────────
-SENTINEL_DCE_ENDPOINT = "https://recorded-future-dce-8fgz.swedencentral-1.ingest.monitor.azure.com"
-
-DCR_PLAYBOOK_ALERTS_IMMUTABLE_ID  = "dcr-fd9526788bf54504a3a5ebe7e3b09298"
-DCR_CLASSIC_ALERTS_IMMUTABLE_ID   = "dcr-8e1ad77590874cc89dca3c4b3639c694"
-DCR_THREATMAP_IMMUTABLE_ID        = "dcr-b645eba0f66841b1b2ba9cbf4213c4d9"
-DCR_THREATMAP_MALWARE_IMMUTABLE_ID = "dcr-b1c1396af35d4219a843d6f49790cccd"
-
-STREAM_PLAYBOOK_ALERTS  = "Custom-RecordedFuturePlaybookAlerts_V2_CL"
-STREAM_CLASSIC_ALERTS   = "Custom-RecordedFutureClassicAlerts_V2_CL"
-STREAM_THREATMAP        = "Custom-RecordedFutureThreatMap_V2_CL"
-STREAM_THREATMAP_MALWARE = "Custom-RecordedFutureThreatMapMalware_V2_CL"
-
-# ── Log Analytics tables ──────────────────────────────────────────────────────
-TABLE_PLAYBOOK_ALERTS   = "RecordedFuturePlaybookAlerts_V2_CL"
-TABLE_CLASSIC_ALERTS    = "RecordedFutureClassicAlerts_V2_CL"
-TABLE_THREATMAP         = "RecordedFutureThreatMap_V2_CL"
-TABLE_THREATMAP_MALWARE = "RecordedFutureThreatMapMalware_V2_CL"
 
 # ── ThreatHunting workbooks (deployed alongside the ThreatMap playbooks) ──────
 # Like the analytic rules, these are deployed idempotently with a fixed,

@@ -5,7 +5,7 @@ import os
 
 from behave import given
 
-from support import az_client, config, rf_client
+from support import az_client, rf_client
 
 
 @given("az CLI is authenticated")

@@ -30,9 +30,6 @@ behave identity/
 export AZURE_TOKEN_QA=<token>
 behave sentinel/
 
-# Both suites
-behave identity/ sentinel/
-
 # Tagged runs
 behave --tags=pba identity/
 behave --tags=v3 identity/

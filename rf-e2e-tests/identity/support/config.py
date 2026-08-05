@@ -3,10 +3,6 @@ Identity-specific configuration.
 
 Shared Azure constants (SUBSCRIPTION_ID, RESOURCE_GROUP, etc.) are imported
 from rf_e2e_tests.config_base. Identity-specific constants are defined here.
-
-TODO: audit for unused variables — some constants (e.g. IDENTITY_DCE_ENDPOINT,
-IDENTITY_DCR_* IDs) were added as reference values but may not be read by any
-test code now that the templates resolve them via reference() at ARM deploy time.
 """
 import os
 from datetime import date
@@ -21,7 +17,6 @@ from rf_e2e_tests.config_base import (  # noqa: F401
     LAW_WORKSPACE_ID,
     PORTAL_TENANT,
     RUN_TIMEOUT_SECONDS,
-    LAW_POLL_TIMEOUT_SECONDS,
     LAW_POLL_INTERVAL_SECONDS,
 )
 
@@ -46,12 +41,6 @@ TEMPLATE_PATH = (
     / "azuredeploy.json"
 )
 RFI_CUSTOM_CONNECTOR = "RFI-CustomConnector-0-2-0"
-LAW_TABLE = "RFI_PlaybookAlertResults_V2_CL"
-
-# ── Identity Alert Importer DCE/DCR (deployed in rf-erik) ────────────────────
-IDENTITY_DCE_ENDPOINT = "https://recorded-future-identity-dce-o842.swedencentral-1.ingest.monitor.azure.com"
-IDENTITY_DCR_PLAYBOOK_ALERTS_IMMUTABLE_ID = "dcr-79e03c11db09440c952541675276da3b"
-IDENTITY_STREAM_PLAYBOOK_ALERTS = "Custom-RFI_PlaybookAlertResults_V2_CL"
 
 # ── Test logic app names ──────────────────────────────────────────────────────
 _TODAY = date.today().strftime("%Y%m%d")

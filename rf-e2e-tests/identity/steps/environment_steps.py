@@ -6,7 +6,7 @@ are loaded via steps/__init__.py from rf_e2e_tests.shared_steps.
 """
 from behave import given
 
-from support import az_client, config, rf_client
+from support import az_client, rf_client
 
 
 @given('there is at least 1 New identity PBA available via the RF gateway')

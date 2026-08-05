@@ -8,14 +8,13 @@ import json
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from support import az_client, config, rf_client
+from support import az_client, config
 from support.playbook_alert_patcher import patch_template as patch_pba
 from support.alert_importer_patcher import patch_template as patch_alert
 from rf_e2e_tests.patchers import write_temp
 
 
 def _write_unpatched(template: dict) -> str:
-    from rf_e2e_tests.patchers import write_temp
     return write_temp(template)
 
 

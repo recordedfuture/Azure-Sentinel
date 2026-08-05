@@ -2,16 +2,10 @@
 Feature: RF Sentinel ThreatMap Importers → Log Analytics Workspace
   Tests RecordedFuture-ThreatMap-Importer and RecordedFuture-ThreatMapMalware-Importer.
   Each playbook sends the full current threat map as a single row per run
-  (not one row per entity) — no alert pinning, just assert a new row appeared
-  after the trigger. The row's "data" column is a JSON-encoded array string of
-  entity objects; assertions parse it and check its shape (non-empty array,
-  expected keys per entity) rather than just checking row count.
+  (not one row per entity). Assert a new row appeared after the trigger.
 
-  NOTE: RecordedFutureThreatActorHunting.json / RecordedFutureMalwareThreatHunting.json
-  consume this data via mv-expand on the "data" column. Verifying the workbook JSON
-  parses/queries correctly against real ingested data is a manual/portal step —
-  the visual rendering (charts, filters) can't reasonably be asserted in an
-  automated Behave test. Do not try to automate that here.
+  NOTE: workbooks RecordedFutureThreatActorHunting.json / RecordedFutureMalwareThreatHunting.json
+  consume this data via mv-expand on the "data" column. Verifying the workbooks is a manual step.
 
   Background:
     Given az CLI is authenticated

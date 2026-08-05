@@ -5,9 +5,9 @@ The shared step_trigger_and_wait is loaded via steps/__init__.py.
 """
 import time
 
-from behave import given, when
+from behave import given
 
-from support import az_client, config, rf_client
+from support import az_client, rf_client
 
 
 @given('the test RF alert is reset to "New"')
