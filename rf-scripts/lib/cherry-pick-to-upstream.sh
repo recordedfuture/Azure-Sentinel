@@ -15,16 +15,30 @@ set -euo pipefail
 #   NO_CHANGES=true|false    whether the upstream branch was already up to date
 #
 # Strategy:
-#   If the upstream branch already exists on origin, and its existing commits
-#   (relative to master) are an in-order prefix of the current commit range's
-#   patch-ids, we can cherry-pick just the *new* trailing commits onto the
+#   We always cherry-pick with `-x`, which appends a
+#   "(cherry picked from commit <sha>)" trailer to each resulting commit
+#   message. That lets us later determine, from commit *metadata alone*
+#   (no blob/diff content needed), which original internal commits are
+#   already reflected on the upstream branch.
+#
+#   If the upstream branch already exists on origin, and the original SHAs
+#   recorded in its commits' trailers are an in-order prefix of the current
+#   commit range, we can cherry-pick just the *new* trailing commits onto the
 #   existing upstream branch tip. This produces a fast-forward that does not
 #   require a force-push.
 #
-#   Otherwise (upstream branch doesn't exist yet, or history has diverged e.g.
-#   because internal commits were amended/rebased) we fall back to rebuilding
-#   the upstream branch fresh from master and cherry-picking the full range,
-#   which requires a force-push.
+#   Otherwise (upstream branch doesn't exist yet, trailers are missing e.g.
+#   from a branch built before this feature existed, or history has diverged
+#   because internal commits were amended/rebased) we fall back to
+#   rebuilding the upstream branch fresh from master and cherry-picking the
+#   full range, which requires a force-push.
+#
+#   Deliberately avoided: comparing by diff/patch-id. On a partial clone
+#   (--filter=blob:none, used by our CI checkout to keep this large repo's
+#   fetch fast) computing a diff requires downloading blob content that
+#   isn't present locally, forcing slow on-demand blob fetches against
+#   origin. Metadata-only comparisons (commit SHAs, trailers) don't have
+#   this problem since commit objects are always fetched in full.
 
 MASTER_BRANCH="master"
 INTERNAL_BRANCH="master-rf"
@@ -52,14 +66,19 @@ fail_cherry_pick() {
   exit 1
 }
 
-# Prints one patch-id per line (oldest first) for all commits in the given
-# range, in a single batched invocation. This avoids spawning a separate
-# `git show` per commit, which is important on partial clones (--filter=
-# blob:none): each per-commit `git show` would otherwise trigger its own
-# unbatched, lazy on-demand blob fetch round-trip against origin, which can
-# be extremely slow on a large repository.
-patch_ids_for_range() {
-  git log --reverse -p "$1" | git patch-id --stable | awk '{print $1}'
+# Prints, in order (oldest first), the original source SHA recorded in each
+# commit's "(cherry picked from commit <sha>)" trailer for the given range.
+# Metadata-only (git log --format), no blob/diff content is touched.
+# Prints an empty line for any commit that has no such trailer, so the
+# output line count always matches the number of commits in the range
+# (keeping index-based comparison against the full commit list valid).
+original_shas_for_range() {
+  git log --reverse --format='%B%x00' "$1" \
+    | while IFS= read -r -d $'\0' body; do
+        printf '%s\n' "$body" | grep -oE '\(cherry picked from commit [0-9a-f]{40}\)' \
+          | tail -1 \
+          | grep -oE '[0-9a-f]{40}' || echo ""
+      done
 }
 
 # ── find commits on the current branch ───────────────────────────────────────
@@ -90,28 +109,26 @@ USE_INCREMENTAL=false
 NEW_COMMIT_SHAS=""
 
 if $UPSTREAM_EXISTS; then
-  # Commits already on the upstream branch, relative to master.
   EXISTING_RANGE="origin/${MASTER_BRANCH}..origin/${UPSTREAM_BRANCH}"
-  FULL_RANGE="origin/${INTERNAL_BRANCH}..origin/${CURRENT_BRANCH}"
 
-  # Build order-preserving patch-id lists (batched, not per-commit).
-  FULL_PATCH_IDS=()
-  while IFS= read -r pid; do
-    FULL_PATCH_IDS+=("$pid")
-  done < <(patch_ids_for_range "$FULL_RANGE")
+  ALL_SHAS_ARR=()
+  while IFS= read -r sha; do
+    ALL_SHAS_ARR+=("$sha")
+  done <<< "$COMMIT_SHAS"
 
-  EXISTING_PATCH_IDS=()
-  while IFS= read -r pid; do
-    EXISTING_PATCH_IDS+=("$pid")
-  done < <(patch_ids_for_range "$EXISTING_RANGE")
+  EXISTING_ORIGINAL_SHAS=()
+  while IFS= read -r sha; do
+    EXISTING_ORIGINAL_SHAS+=("$sha")
+  done < <(original_shas_for_range "$EXISTING_RANGE")
 
-  # Check that EXISTING_PATCH_IDS is an in-order prefix of FULL_PATCH_IDS.
+  # Check that EXISTING_ORIGINAL_SHAS is an in-order prefix of ALL_SHAS_ARR,
+  # with no missing/empty trailers along the way.
   PREFIX_MATCHES=true
-  if (( ${#EXISTING_PATCH_IDS[@]} > ${#FULL_PATCH_IDS[@]} )); then
+  if (( ${#EXISTING_ORIGINAL_SHAS[@]} > ${#ALL_SHAS_ARR[@]} )); then
     PREFIX_MATCHES=false
   else
-    for i in "${!EXISTING_PATCH_IDS[@]}"; do
-      if [[ "${EXISTING_PATCH_IDS[$i]}" != "${FULL_PATCH_IDS[$i]}" ]]; then
+    for i in "${!EXISTING_ORIGINAL_SHAS[@]}"; do
+      if [[ -z "${EXISTING_ORIGINAL_SHAS[$i]}" || "${EXISTING_ORIGINAL_SHAS[$i]}" != "${ALL_SHAS_ARR[$i]}" ]]; then
         PREFIX_MATCHES=false
         break
       fi
@@ -120,8 +137,8 @@ if $UPSTREAM_EXISTS; then
 
   if $PREFIX_MATCHES; then
     USE_INCREMENTAL=true
-    NUM_EXISTING=${#EXISTING_PATCH_IDS[@]}
-    NUM_FULL=${#FULL_PATCH_IDS[@]}
+    NUM_EXISTING=${#EXISTING_ORIGINAL_SHAS[@]}
+    NUM_FULL=${#ALL_SHAS_ARR[@]}
 
     if (( NUM_EXISTING == NUM_FULL )); then
       # Nothing new to cherry-pick; upstream branch is already up to date.
@@ -131,10 +148,6 @@ if $UPSTREAM_EXISTS; then
       exit 0
     fi
 
-    ALL_SHAS_ARR=()
-    while IFS= read -r sha; do
-      ALL_SHAS_ARR+=("$sha")
-    done <<< "$COMMIT_SHAS"
     NEW_COMMIT_SHAS=$(printf '%s\n' "${ALL_SHAS_ARR[@]:$NUM_EXISTING}")
   fi
 fi
@@ -143,7 +156,7 @@ if $USE_INCREMENTAL; then
   # ── fast path: extend the existing upstream branch ─────────────────────────
   git checkout -b "$UPSTREAM_BRANCH" "origin/$UPSTREAM_BRANCH" >&2
 
-  if ! git cherry-pick $NEW_COMMIT_SHAS >&2; then
+  if ! git cherry-pick -x $NEW_COMMIT_SHAS >&2; then
     fail_cherry_pick
   fi
 
@@ -152,7 +165,7 @@ else
   # ── fallback: rebuild the upstream branch fresh from master ────────────────
   git checkout -b "$UPSTREAM_BRANCH" "origin/$MASTER_BRANCH" >&2
 
-  if ! git cherry-pick $COMMIT_SHAS >&2; then
+  if ! git cherry-pick -x $COMMIT_SHAS >&2; then
     fail_cherry_pick
   fi
 
