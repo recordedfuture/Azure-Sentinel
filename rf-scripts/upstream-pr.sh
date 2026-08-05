@@ -6,8 +6,7 @@ set -euo pipefail
 # upstream branch based on master, then pushes and opens the PR creation URL.
 
 # TODO improvements:
-#  1. When updating existing feat/ branches, don't necessarily force push
-#  2. Run automatically on pushes to internal PRs that already had /upstream-pr on it
+#  1. Run automatically on pushes to internal PRs that already had /upstream-pr on it
 
 MASTER_BRANCH="master"
 INTERNAL_BRANCH="master-rf"
@@ -63,23 +62,43 @@ fi
 
 bold "\nCommits to be cherry-picked onto '$UPSTREAM_BRANCH':"
 
-if ! COMMIT_LIST=$("$SCRIPT_DIR/lib/cherry-pick-to-upstream.sh" "$CURRENT_BRANCH" "$UPSTREAM_BRANCH"); then
+STATUS_FILE=$(mktemp)
+if ! COMMIT_LIST=$("$SCRIPT_DIR/lib/cherry-pick-to-upstream.sh" "$CURRENT_BRANCH" "$UPSTREAM_BRANCH" "$STATUS_FILE"); then
+  rm -f "$STATUS_FILE"
   abort "$(cat)"
 fi
 
 echo "$COMMIT_LIST"
 echo ""
 
+# shellcheck disable=SC1090
+source "$STATUS_FILE"
+rm -f "$STATUS_FILE"
+
+if [[ "${NO_CHANGES:-false}" == "true" ]]; then
+  green "Upstream branch '$UPSTREAM_BRANCH' is already up to date. Nothing to push."
+  exit 0
+fi
+
 # ── push and open PR URL ──────────────────────────────────────────────────────
 
+PUSH_ARGS=(-u origin "$UPSTREAM_BRANCH")
+if [[ "${NEEDS_FORCE:-true}" == "true" ]]; then
+  PUSH_ARGS=(--force-with-lease "${PUSH_ARGS[@]}")
+fi
+
 TMP_FILE=$(mktemp)
-git push --force-with-lease -u origin "$UPSTREAM_BRANCH" 2>&1 | tee "$TMP_FILE"
+git push "${PUSH_ARGS[@]}" 2>&1 | tee "$TMP_FILE"
 OUTPUT=$(cat "$TMP_FILE")
 rm -f "$TMP_FILE"
 
 echo ""
 if [[ -n "$EXISTING_PR_URL" ]]; then
-  green "Existing upstream PR updated (force-pushed):"
+  if [[ "${NEEDS_FORCE:-true}" == "true" ]]; then
+    green "Existing upstream PR updated (force-pushed):"
+  else
+    green "Existing upstream PR updated:"
+  fi
   echo "  $EXISTING_PR_URL"
   open "$EXISTING_PR_URL"
 else

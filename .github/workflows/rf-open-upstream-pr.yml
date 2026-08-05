@@ -81,13 +81,19 @@ jobs:
         id: cherry-pick
         run: |
           chmod +x rf-scripts/lib/cherry-pick-to-upstream.sh
+          STATUS_FILE=$(mktemp)
           set +e
           COMMIT_LIST=$(./rf-scripts/lib/cherry-pick-to-upstream.sh \
             "${{ steps.pr-info.outputs.branch }}" \
-            "${{ steps.derive.outputs.upstream_branch }}")
+            "${{ steps.derive.outputs.upstream_branch }}" \
+            "$STATUS_FILE")
           EXIT_CODE=$?
           set -e
           echo "$COMMIT_LIST"
+          if [[ -f "$STATUS_FILE" ]]; then
+            cat "$STATUS_FILE" >> "$GITHUB_OUTPUT"
+          fi
+          rm -f "$STATUS_FILE"
           # Make commit list available to later steps (escape for multiline)
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "commit_list<<$EOF" >> "$GITHUB_OUTPUT"
@@ -116,9 +122,14 @@ jobs:
 
       - name: Push upstream branch
         id: push
+        if: success() && steps.cherry-pick.outputs.NO_CHANGES != 'true'
         run: |
+          PUSH_ARGS=(-u origin "${{ steps.derive.outputs.upstream_branch }}")
+          if [[ "${{ steps.cherry-pick.outputs.NEEDS_FORCE }}" == "true" ]]; then
+            PUSH_ARGS=(--force-with-lease "${PUSH_ARGS[@]}")
+          fi
           TMP_FILE=$(mktemp)
-          git push --force-with-lease -u origin "${{ steps.derive.outputs.upstream_branch }}" 2>&1 | tee "$TMP_FILE"
+          git push "${PUSH_ARGS[@]}" 2>&1 | tee "$TMP_FILE"
           EXIT_CODE=${PIPESTATUS[0]}
           OUTPUT=$(cat "$TMP_FILE")
           rm -f "$TMP_FILE"
@@ -126,8 +137,20 @@ jobs:
           echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
           exit $EXIT_CODE
 
+      - name: Comment already up to date
+        if: success() && steps.cherry-pick.outputs.NO_CHANGES == 'true'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '`/upstream-pr` — upstream branch `${{ steps.derive.outputs.upstream_branch }}` is already up to date. Nothing to push.',
+            });
+
       - name: Comment success and close PR
-        if: success()
+        if: success() && steps.cherry-pick.outputs.NO_CHANGES != 'true'
         uses: actions/github-script@v8
         with:
           script: |
@@ -136,11 +159,13 @@ jobs:
             const existingPrUrl = '${{ steps.existing-pr.outputs.pr_url }}';
             const existingPrNumber = '${{ steps.existing-pr.outputs.pr_number }}';
             const commitList = `${{ steps.cherry-pick.outputs.commit_list }}`;
+            const neededForce = '${{ steps.cherry-pick.outputs.NEEDS_FORCE }}' === 'true';
 
             // Prefer existing open PR; fall back to new PR creation URL or compare link
             let prLink;
             if (existingPrUrl) {
-              prLink = `[View existing PR #${existingPrNumber} towards Microsoft](${existingPrUrl}) (updated with force-push)`;
+              const suffix = neededForce ? ' (updated with force-push)' : ' (updated)';
+              prLink = `[View existing PR #${existingPrNumber} towards Microsoft](${existingPrUrl})${suffix}`;
             } else if (newPrUrl) {
               prLink = `[Open PR towards Microsoft](${newPrUrl})`;
             } else {
