@@ -36,7 +36,7 @@ def list_sentinel_incidents(
     url = (
         f"https://management.azure.com/subscriptions/{sub}/resourceGroups/{rg}"
         f"/providers/Microsoft.OperationalInsights/workspaces/{workspace}"
-        f"/providers/Microsoft.SecurityInsights/incidents?api-version=2023-02-01"
+        f"/providers/Microsoft.SecurityInsights/incidents?api-version=2023-09-01-preview"
     )
     if filter_expr:
         url += f"&$filter={filter_expr}"
@@ -45,17 +45,27 @@ def list_sentinel_incidents(
 
 
 def wait_for_incident(
-    title_substring: str,
     after: "datetime",
     timeout: int = 600,
     poll_interval: int = 30,
+    title_substring: str = "Alert:",
 ) -> dict:
     """
-    Poll Sentinel incidents until one with title containing *title_substring*
-    appears, created after *after*. Returns the incident. Raises on timeout.
+    Poll Sentinel incidents until one is found that:
+      - was created after *after*
+      - has *title_substring* anywhere in its title (default "Alert:")
+
+    Returns the matching incident dict. Raises AzCliError on timeout.
+
+    NOTE: this matches on a brand-new incident's title. It is NOT reliable for
+    rules whose incidentConfiguration groups alerts coarsely (e.g. by a
+    low-cardinality custom detail like "Category" with a lookback window) —
+    such rules will often merge a fresh alert into an *existing* incident
+    without creating a new one or changing its title. For those, use
+    wait_for_incident_containing_alert() instead, which correlates via the
+    alert's SystemAlertId rather than incident title/creation time.
     """
     from rf_e2e_tests.az_client import AzCliError
-    from datetime import timezone
     import datetime as dt
 
     deadline = time.time() + timeout
@@ -67,7 +77,8 @@ def wait_for_incident(
             if not created_str:
                 continue
             created = dt.datetime.fromisoformat(created_str.replace("Z", "+00:00"))
-            if created >= after and title_substring.lower() in props.get("title", "").lower():
+            title = props.get("title", "")
+            if created >= after and title_substring.lower() in title.lower():
                 return inc
         remaining = int(deadline - time.time())
         print(f"\n  No incident matching '{title_substring}' yet, retrying ({remaining}s remaining)...")
@@ -77,50 +88,153 @@ def wait_for_incident(
     )
 
 
-def deploy_and_enable_analytic_rule(
+def wait_for_alert(
+    alert_title_substring: str,
+    after: "datetime",
+    timeout: int = 300,
+    poll_interval: int = 15,
+) -> dict:
+    """
+    Poll the SecurityAlert table for a row whose AlertName contains
+    *alert_title_substring*, generated after *after*. Returns the row (which
+    includes SystemAlertId) once found. Raises AzCliError on timeout.
+    """
+    from rf_e2e_tests.az_client import AzCliError, query_law
+
+    anchor = after.strftime("%Y-%m-%dT%H:%M:%SZ")
+    escaped = alert_title_substring.replace('"', '\\"')
+    kql = (
+        f'SecurityAlert | where TimeGenerated >= datetime("{anchor}") '
+        f'| where AlertName contains "{escaped}" '
+        f'| order by TimeGenerated asc | limit 1'
+    )
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        rows = query_law(kql)
+        if rows:
+            return rows[0]
+        remaining = int(deadline - time.time())
+        print(f"\n  No SecurityAlert matching '{alert_title_substring}' yet, retrying ({remaining}s remaining)...")
+        time.sleep(poll_interval)
+    raise AzCliError(
+        f"Timed out waiting for SecurityAlert matching '{alert_title_substring}' after {timeout}s"
+    )
+
+
+def wait_for_incident_containing_alert(
+    system_alert_id: str,
+    timeout: int = 600,
+    poll_interval: int = 30,
+) -> dict:
+    """
+    Poll the SecurityIncident table until one is found whose AlertIds array
+    contains *system_alert_id*. This correctly handles rules that group
+    multiple alerts into a single (possibly pre-existing) incident — e.g. by
+    a coarse custom-detail key with a lookback window — where a fresh alert
+    may be silently attached to an older incident rather than creating a new
+    one with a matching title.
+
+    Returns the SecurityIncident row (IncidentNumber, Title, Status, Severity,
+    etc). Raises AzCliError on timeout.
+    """
+    from rf_e2e_tests.az_client import AzCliError, query_law
+
+    kql = (
+        f'SecurityIncident | where AlertIds has "{system_alert_id}" '
+        f'| order by TimeGenerated desc | limit 1'
+    )
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        rows = query_law(kql)
+        if rows:
+            return rows[0]
+        remaining = int(deadline - time.time())
+        print(f"\n  No incident containing alert {system_alert_id} yet, retrying ({remaining}s remaining)...")
+        time.sleep(poll_interval)
+    raise AzCliError(
+        f"Timed out waiting for a Sentinel incident containing alert {system_alert_id} after {timeout}s"
+    )
+
+
+def _to_iso8601_duration(value: str) -> str:
+    """
+    Convert shorthand durations like "1h", "5m", "30s" (used in the Sentinel
+    analytic rule YAML DSL) to ISO 8601 duration strings ("PT1H", "PT5M",
+    "PT30S") required by the alertRules ARM API. Already-ISO8601 values
+    (starting with "P") are returned unchanged.
+    """
+    if value.upper().startswith("P"):
+        return value
+    unit = value[-1].lower()
+    amount = value[:-1]
+    unit_map = {"h": "H", "m": "M", "s": "S", "d": "D"}
+    if unit not in unit_map:
+        return value  # unrecognised — pass through, let ARM reject if invalid
+    if unit == "d":
+        return f"P{amount}D"
+    return f"PT{amount}{unit_map[unit]}"
+
+
+def _normalize_durations(props: dict) -> None:
+    """Recursively convert known duration fields in *props* to ISO 8601, in place."""
+    duration_keys = {"lookbackDuration", "queryPeriod", "queryFrequency", "suppressionDuration"}
+    for key, value in props.items():
+        if key in duration_keys and isinstance(value, str):
+            props[key] = _to_iso8601_duration(value)
+        elif isinstance(value, dict):
+            _normalize_durations(value)
+
+
+def deploy_analytic_rule_from_yaml(
+    yaml_path,
     rule_name: str,
-    display_name: str,
-    kind: str,
-    query: str,
-    severity: str = "Medium",
     workspace: str = config.LAW_NAME,
     rg: str = config.RESOURCE_GROUP,
 ) -> None:
     """
-    Deploy (PUT) an NRT analytic rule and enable it.
+    Deploy (PUT) an NRT analytic rule from a YAML source file and enable it.
+    The YAML format matches the Sentinel analytic rule YAML schema used in the
+    Solutions/Recorded Future/Analytic Rules/ directory.
+
+    Copies the YAML fields into the ARM `properties` object as-is — the
+    Sentinel alertRules API silently ignores fields it doesn't recognise
+    (e.g. YAML-only fields like `status`, `queryFrequency`, `version`), so no
+    per-field allow-list is needed. Adjustments made:
+      - `id` is dropped (it's the YAML template GUID, not the ARM rule name)
+      - `name` is renamed to `displayName` (ARM's field name for the same thing)
+      - `kind` is hoisted out of properties to the top level (ARM requirement)
+      - duration fields (e.g. lookbackDuration: "1h") are converted from the
+        YAML DSL's shorthand to ISO 8601 ("PT1H"), which the raw ARM API requires
+    Then `enabled`, `suppressionEnabled`, and `suppressionDuration` are added,
+    since the YAML doesn't carry deployment-time state.
+
     Idempotent — safe to call on every before_all.
     """
+    import yaml
+
+    with open(yaml_path) as f:
+        rule = yaml.safe_load(f)
+
     sub = config.SUBSCRIPTION_ID
     url = (
         f"https://management.azure.com/subscriptions/{sub}/resourceGroups/{rg}"
         f"/providers/Microsoft.OperationalInsights/workspaces/{workspace}"
         f"/providers/Microsoft.SecurityInsights/alertRules/{rule_name}"
-        f"?api-version=2023-02-01"
+        f"?api-version=2023-09-01-preview"
     )
-    body = {
-        "kind": kind,
-        "properties": {
-            "displayName": display_name,
-            "description": f"E2E test rule: {display_name}",
-            "severity": severity,
-            "enabled": True,
-            "query": query,
-            "suppressionEnabled": False,
-            "suppressionDuration": "PT5H",
-            "eventGroupingSettings": {"aggregationKind": "AlertPerResult"},
-            "incidentConfiguration": {
-                "createIncident": True,
-                "groupingConfiguration": {
-                    "enabled": False,
-                    "reopenClosedIncident": False,
-                    "lookbackDuration": "PT5M",
-                    "matchingMethod": "AllEntities",
-                },
-            },
-        },
-    }
+
+    props = dict(rule)
+    props.pop("id", None)
+    props["displayName"] = props.pop("name")
+    kind = props.pop("kind", "NRT")
+    props["enabled"] = True
+    props["suppressionEnabled"] = False
+    props["suppressionDuration"] = "PT5H"
+    _normalize_durations(props)
+
+    body = {"kind": kind, "properties": props}
     _rest("PUT", url, body)
-    print(f"  Analytic rule '{display_name}' deployed and enabled")
+    print(f"  Analytic rule '{rule['name']}' deployed and enabled")
 
 
 def wait_for_role_assignments(keys: list, timeout: int = 600, poll: int = 15) -> None:

@@ -58,3 +58,28 @@ def deploy_all(keys: list, context) -> None:
             except Exception as exc:
                 print(f"  [deploy] {key} FAILED: {exc}")
                 raise
+
+
+_ANALYTIC_RULES_DIR = (
+    config._SOLUTIONS / "Analytic Rules" / "IncidentCreation"
+)
+
+
+def deploy_analytic_rules() -> None:
+    """
+    Deploy and enable the NRT incident-creation analytic rules for both alert
+    importers, read directly from the YAML source files.
+    Idempotent — safe to call on every before_all.
+
+    Rules must be active BEFORE data lands in the tables so NRT evaluation picks
+    up the rows. Call this before deploying/triggering the Logic Apps.
+    """
+    print("\n=== Deploying analytic rules ===")
+    az_client.deploy_analytic_rule_from_yaml(
+        yaml_path=_ANALYTIC_RULES_DIR / "RecordedFuturePlaybookAlerts.yaml",
+        rule_name="RecordedFuturePlaybookAlertsIncidentCreation",
+    )
+    az_client.deploy_analytic_rule_from_yaml(
+        yaml_path=_ANALYTIC_RULES_DIR / "RecordedFutureAlerts.yaml",
+        rule_name="RecordedFutureClassicAlertsIncidentCreation",
+    )

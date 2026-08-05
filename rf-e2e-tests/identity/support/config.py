@@ -3,6 +3,10 @@ Identity-specific configuration.
 
 Shared Azure constants (SUBSCRIPTION_ID, RESOURCE_GROUP, etc.) are imported
 from rf_e2e_tests.config_base. Identity-specific constants are defined here.
+
+TODO: audit for unused variables — some constants (e.g. IDENTITY_DCE_ENDPOINT,
+IDENTITY_DCR_* IDs) were added as reference values but may not be read by any
+test code now that the templates resolve them via reference() at ARM deploy time.
 """
 import os
 from datetime import date

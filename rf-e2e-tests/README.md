@@ -51,10 +51,15 @@ For role assignment (DCR Monitoring Metrics Publisher), ensure your
 
 ## Environments
 
-Both suites run against:
+Both suites currently run against a fixed environment:
 - **Resource group:** `rf-erik`
 - **Log Analytics Workspace:** `ErikLogAnalyticWorkspace`
 - **Subscription:** `5129b3ff-c0c6-4e86-bd1c-70e5fcd579cf`
+
+> **TODO:** These values are hardcoded in `rf_e2e_tests/config_base.py`.
+> A future improvement would allow overriding them via environment variables
+> (e.g. `RF_TEST_RESOURCE_GROUP`, `RF_TEST_LAW_NAME`) so the suite can run
+> against any environment without editing source files.
 
 ## Bump test Logic App names
 

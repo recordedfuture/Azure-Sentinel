@@ -29,6 +29,10 @@ def before_all(context):
         context.test_playbook_alert_id = pba.get("playbook_alert_id") or pba.get("id")
         print(f"  Playbook alert: {context.test_playbook_alert_id}")
 
+        # Deploy analytic rules BEFORE Logic Apps so NRT rules are active
+        # when data lands — rules only pick up rows written after they are enabled.
+        deployment.deploy_analytic_rules()
+
     keys = _keys_to_deploy(context)
     if keys:
         deployment.deploy_all(keys, context)

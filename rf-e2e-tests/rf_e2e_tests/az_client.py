@@ -230,6 +230,65 @@ def get_run_action_statuses(
     }
 
 
+# ── DCR role-assignment propagation-lag detection ─────────────────────────────
+#
+# Azure RBAC role assignments on Data Collection Rules can take anywhere from a
+# few minutes up to ~30+ minutes to actually be enforced by the data-plane
+# ingestion endpoint, even though the assignment is already visible via ARM.
+# When this happens, the Logic App's "Send_Data" (or similarly named) HTTP
+# action fails with a 403 "OperationFailed" error referencing the DCR's
+# immutable ID. This is a known, transient, self-resolving condition — not a
+# real bug — so callers should retry the whole trigger rather than fail hard.
+
+_DCR_RBAC_ERROR_SIGNATURE = "does not have access to ingest data for the data collection rule"
+
+
+def _fetch_action_output_body(
+    name: str, run_name: str, action_name: str, rg: str = config.RESOURCE_GROUP
+) -> Optional[dict]:
+    """Fetch the ActionOutputs blob for a single action of a completed run."""
+    import requests
+
+    sub = config.SUBSCRIPTION_ID
+    url = (
+        f"https://management.azure.com/subscriptions/{sub}/resourceGroups/{rg}"
+        f"/providers/Microsoft.Logic/workflows/{name}"
+        f"/runs/{run_name}/actions/{action_name}?api-version=2016-06-01"
+    )
+    detail = _rest("GET", url, check=False)
+    if not detail:
+        return None
+    links = detail.get("properties", {})
+    outputs_link = links.get("outputsLink") or links.get("inputsLink")
+    if not outputs_link or not outputs_link.get("uri"):
+        return None
+    try:
+        resp = requests.get(outputs_link["uri"], timeout=15)
+        resp.raise_for_status()
+        return resp.json()
+    except Exception:
+        return None
+
+
+def is_dcr_rbac_propagation_error(
+    name: str, run_name: str, action_statuses: dict, rg: str = config.RESOURCE_GROUP
+) -> bool:
+    """
+    Return True if any failed action in this run failed specifically due to
+    the DCR role-assignment-not-yet-enforced 403, rather than some other
+    (real) failure.
+    """
+    for action_name, status in action_statuses.items():
+        if status != "Failed":
+            continue
+        body = _fetch_action_output_body(name, run_name, action_name, rg)
+        if body is None:
+            continue
+        if _DCR_RBAC_ERROR_SIGNATURE in json.dumps(body):
+            return True
+    return False
+
+
 # ── Log Analytics ─────────────────────────────────────────────────────────────
 
 def query_law(kql: str, workspace: str = config.LAW_WORKSPACE_ID) -> list:

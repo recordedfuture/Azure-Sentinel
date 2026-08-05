@@ -5,12 +5,19 @@ Suite-specific config (tokens, app names, table names) lives in
 identity/support/config.py and sentinel/support/config.py respectively.
 Both import from here for the shared Azure environment values.
 """
+import os
 
-SUBSCRIPTION_ID = "5129b3ff-c0c6-4e86-bd1c-70e5fcd579cf"
-RESOURCE_GROUP = "rf-erik"
-LAW_NAME = "ErikLogAnalyticWorkspace"
+# TODO: allow overriding via env vars so tests can run against any environment
+# without editing source files. Suggested vars:
+#   RF_TEST_SUBSCRIPTION_ID, RF_TEST_RESOURCE_GROUP, RF_TEST_LAW_NAME,
+#   RF_TEST_LAW_WORKSPACE_ID, RF_TEST_PORTAL_TENANT
+# Also document in README.md.
+
+SUBSCRIPTION_ID  = "5129b3ff-c0c6-4e86-bd1c-70e5fcd579cf"
+RESOURCE_GROUP   = "rf-erik"
+LAW_NAME         = "ErikLogAnalyticWorkspace"
 LAW_WORKSPACE_ID = "7479cf3e-cc64-43f7-b440-9a7afd21b2fc"
-PORTAL_TENANT = "integrationsopsrecordedfutu.onmicrosoft.com"
+PORTAL_TENANT    = "integrationsopsrecordedfutu.onmicrosoft.com"
 
 # Connection statuses considered "authorized" for step assertions.
 # Suites using MSI-authenticated connectors (which report "Ready") should

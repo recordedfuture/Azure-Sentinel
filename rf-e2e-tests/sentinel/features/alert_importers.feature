@@ -3,7 +3,8 @@ Feature: RF Sentinel Alert Importers → Log Analytics Workspace
   Tests RecordedFuture-Playbook-Alert-Importer and RecordedFuture-Alert-Importer.
   Each run dynamically pins to a live RF alert so assertions are specific, not
   just "some row appeared". Both Logic Apps are deployed once (date-scoped names)
-  and reused within the same day.
+  and reused within the same day. NRT analytic rules are deployed to verify that
+  ingested data triggers Sentinel incident creation.
 
   Background:
     Given az CLI is authenticated
@@ -12,14 +13,16 @@ Feature: RF Sentinel Alert Importers → Log Analytics Workspace
     And the RF API is reachable with token from "$AZURE_TOKEN_QA"
     And the shared RF connector "RecordedFuture-ConnectorV2" is connected
 
-  Scenario: playbook_alert_importer - playbook alert imported to LAW
+  Scenario: playbook_alert_importer - playbook alert imported to LAW and incident created
     Given API connections for logic app "playbook_alert_importer" are authorized
     When I trigger logic app "playbook_alert_importer" and wait for completion
     Then the logic app run status is "Succeeded"
     And within 5 minutes table "RecordedFuturePlaybookAlerts_V2_CL" has a row where "id" equals the pinned playbook alert id
+    And within 10 minutes a Sentinel incident is created for the pinned playbook alert
 
-  Scenario: alert_importer - portal alert imported to LAW
+  Scenario: alert_importer - classic alert imported to LAW and incident created
     Given API connections for logic app "alert_importer" are authorized
     When I trigger logic app "alert_importer" and wait for completion
     Then the logic app run status is "Succeeded"
     And within 5 minutes table "RecordedFutureClassicAlerts_V2_CL" has at least 1 new row
+    And within 10 minutes at least 1 Sentinel incident is created after the trigger

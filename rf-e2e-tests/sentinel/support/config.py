@@ -3,6 +3,10 @@ Sentinel-specific configuration.
 
 Shared Azure constants imported from rf_e2e_tests.config_base.
 Sentinel-specific constants (table names, app names, tokens, DCE/DCR) here.
+
+TODO: audit for unused variables — some DCR/stream/table constants may no
+longer be referenced directly now that the templates resolve them via
+reference() at ARM deploy time.
 """
 import os
 from datetime import date
