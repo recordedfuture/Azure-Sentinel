@@ -3,11 +3,67 @@ Sentinel-specific assertion steps.
 
 The shared steps (run_status, law_has_new_row) are loaded via steps/__init__.py.
 """
+import json
 import time
 
 from behave import then
 
 from support import az_client, config
+
+
+@then('within {minutes:d} minutes table "{table}" has a row with JSON "data" array where each entry has keys "{keys}"')
+def step_law_has_json_array_row(context, minutes, table, keys):
+    """
+    For playbooks (e.g. ThreatMap/ThreatMapMalware) that write one row per run
+    containing a JSON-encoded array string in the "data" column — rather than
+    one row per entity. Asserts the row exists, "data" parses as a non-empty
+    JSON array, and its first entry has the expected keys. This catches shape
+    regressions (e.g. a renamed/missing field), not just outright ingestion
+    failures that a plain row-count check would catch.
+
+    Safe against pre-existing rows — see trigger_logic_app()'s docstring.
+    """
+    required_keys = [k.strip() for k in keys.split(",")]
+    anchor = context.trigger_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+    kql = (
+        f'{table} | where TimeGenerated >= datetime("{anchor}") '
+        f'| order by TimeGenerated desc | limit 1'
+    )
+    timeout = minutes * 60
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        rows = az_client.query_law(kql)
+        if rows:
+            row = rows[0]
+            raw_data = row.get("data")
+            assert raw_data, f"Row in {table} has empty/missing 'data' column: {row}"
+            try:
+                entries = json.loads(raw_data)
+            except (TypeError, json.JSONDecodeError) as exc:
+                raise AssertionError(
+                    f"'data' column in {table} is not valid JSON: {exc}\n{raw_data!r}"
+                )
+            assert isinstance(entries, list) and entries, (
+                f"'data' column in {table} did not parse to a non-empty JSON "
+                f"array (got {type(entries).__name__} with "
+                f"{len(entries) if hasattr(entries, '__len__') else '?'} items)"
+            )
+            missing = [k for k in required_keys if k not in entries[0]]
+            assert not missing, (
+                f"First entry in {table}'s 'data' array is missing expected "
+                f"keys: {missing}. Entry keys present: {sorted(entries[0].keys())}"
+            )
+            print(
+                f"\n  Row in {table}: 'data' array has {len(entries)} "
+                f"entries, first entry has keys {required_keys}"
+            )
+            return
+        remaining = int(deadline - time.time())
+        print(f"\n  No row in {table} yet, retrying ({remaining}s remaining)...")
+        time.sleep(config.LAW_POLL_INTERVAL_SECONDS)
+    raise AssertionError(
+        f"Table '{table}' has no new rows after {minutes} minutes (anchored to {anchor})"
+    )
 
 
 @then('within {minutes:d} minutes table "{table}" has a row where "{column}" equals the pinned playbook alert id')

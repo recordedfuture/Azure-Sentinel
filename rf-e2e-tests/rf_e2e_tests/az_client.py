@@ -137,6 +137,61 @@ def deploy_logic_app(
     print(f"  Deployed {params.get('PlaybookName', '?')}")
 
 
+# ── Workbook deployment ───────────────────────────────────────────────────────
+
+def deploy_workbook(
+    json_path,
+    workbook_id: str,
+    display_name: str,
+    source_id: str,
+    rg: str = config.RESOURCE_GROUP,
+    category: str = "sentinel",
+) -> str:
+    """
+    Deploy (PUT) a Microsoft.Insights/workbooks resource whose serializedData
+    is the raw workbook content at *json_path* (e.g. exported from the Azure
+    Portal — not an ARM template, just the workbook JSON blob as-is).
+
+    *workbook_id* is the resource name (conventionally a GUID). Passing the
+    same *workbook_id* on every call is what makes this idempotent — it
+    overwrites the existing resource in place rather than creating a new one,
+    mirroring deploy_analytic_rule_from_yaml()'s fixed-name PUT pattern.
+
+    *source_id* ties the workbook to a Log Analytics workspace (its ARM
+    resourceId) so its queries resolve against that workspace in the portal.
+
+    Returns the deployed workbook's ARM resource ID.
+    """
+    from pathlib import Path
+
+    sub = config.SUBSCRIPTION_ID
+    with open(json_path) as f:
+        serialized_data = f.read()
+
+    rg_info = _run("group", "show", "--name", rg)
+    location = rg_info["location"]
+
+    url = (
+        f"https://management.azure.com/subscriptions/{sub}/resourceGroups/{rg}"
+        f"/providers/Microsoft.Insights/workbooks/{workbook_id}?api-version=2022-04-01"
+    )
+    body = {
+        "location": location,
+        "kind": "shared",
+        "properties": {
+            "displayName": display_name,
+            "serializedData": serialized_data,
+            "version": "1.0",
+            "sourceId": source_id,
+            "category": category,
+        },
+    }
+    print(f"  Deploying workbook '{display_name}' ({Path(json_path).name}) ...")
+    result = _rest("PUT", url, body)
+    print(f"  Deployed workbook '{display_name}'")
+    return result["id"]
+
+
 def enable_logic_app(name: str, rg: str = config.RESOURCE_GROUP) -> None:
     _set_logic_app_state(name, "Enabled", rg)
 
@@ -163,7 +218,17 @@ def _set_logic_app_state(name: str, state: str, rg: str) -> None:
 # ── Logic App triggering & run tracking ──────────────────────────────────────
 
 def trigger_logic_app(name: str, rg: str = config.RESOURCE_GROUP) -> datetime:
-    """Fire the Recurrence trigger and return the time just before firing."""
+    """
+    Fire the Recurrence trigger and return the time just before firing.
+
+    This timestamp anchors every "new row" assertion (`TimeGenerated >=
+    trigger_time`). That's safe against pre-existing table data because these
+    DCRs set `TimeGenerated = datetime(null)`, which Azure auto-fills with the
+    true ingestion timestamp — not a content-derived value — so no old row
+    can retroactively satisfy the filter. (Known gaps: local/Azure clock skew
+    could in theory exclude a genuinely fresh row; and shape-valid but stale
+    payload content isn't detectable this way — out of scope here.)
+    """
     sub = config.SUBSCRIPTION_ID
     trigger_time = datetime.now(timezone.utc)
     url = (

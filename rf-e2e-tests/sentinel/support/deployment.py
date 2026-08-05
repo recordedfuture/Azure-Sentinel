@@ -36,6 +36,10 @@ def _deploy_one(key: str, context) -> str:
     elif key == "alert_importer":
         tmp = write_temp(patch_alert(template))
     else:
+        # threatmap / threatmap_malware: no alert-pinning patcher needed.
+        # Both playbooks send the full current threat map as a single row
+        # per run (no per-alert filtering to pin), so they're deployed
+        # unpatched — confirmed while writing the ThreatMap E2E scenarios.
         tmp = _write_unpatched(template)
 
     try:
@@ -83,3 +87,33 @@ def deploy_analytic_rules() -> None:
         yaml_path=_ANALYTIC_RULES_DIR / "RecordedFutureAlerts.yaml",
         rule_name="RecordedFutureClassicAlertsIncidentCreation",
     )
+
+
+def deploy_workbooks() -> list:
+    """
+    Deploy the ThreatHunting workbooks (ThreatActor + Malware), which consume
+    the ThreatMap/ThreatMapMalware tables. Idempotent — safe to call on every
+    before_all (each workbook has a fixed resource ID, see config.WORKBOOK_TEMPLATES).
+
+    Returns a list of {key, display_name, resource_id} for each deployed
+    workbook, for the after_all "open in browser?" prompt.
+    """
+    print("\n=== Deploying ThreatHunting workbooks ===")
+    source_id = (
+        f"/subscriptions/{config.SUBSCRIPTION_ID}/resourceGroups/{config.RESOURCE_GROUP}"
+        f"/providers/Microsoft.OperationalInsights/workspaces/{config.LAW_NAME}"
+    )
+    deployed = []
+    for key, wb in config.WORKBOOK_TEMPLATES.items():
+        resource_id = az_client.deploy_workbook(
+            json_path=wb["path"],
+            workbook_id=wb["id"],
+            display_name=wb["display_name"],
+            source_id=source_id,
+        )
+        deployed.append({
+            "key": key,
+            "display_name": wb["display_name"],
+            "resource_id": resource_id,
+        })
+    return deployed

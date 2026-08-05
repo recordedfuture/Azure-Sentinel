@@ -51,6 +51,13 @@ def before_all(context):
         az_client.wait_for_role_assignments(keys)
         print("  Roles active")
 
+    context.completed_workbook_deploys = []
+    if shared_hooks.tag_active(context, "threatmap"):
+        print("\n=== Fixing RF custom connector configuration ===")
+        az_client.ensure_rf_connection_configured()
+
+        context.completed_workbook_deploys = deployment.deploy_workbooks()
+
     context.suite_start_time = datetime.now(timezone.utc)
     context.completed_runs = []
     print(f"\n  Suite start time: {context.suite_start_time.isoformat()}")
@@ -66,3 +73,14 @@ def after_scenario(context, scenario):
 
 def after_all(context):
     shared_hooks.after_all(context, config)
+
+    workbooks = getattr(context, "completed_workbook_deploys", [])
+    labeled_urls = [
+        (
+            wb["display_name"],
+            f"https://portal.azure.com/#@{config.PORTAL_TENANT}"
+            f"/resource{wb['resource_id']}/workbook",
+        )
+        for wb in workbooks
+    ]
+    shared_hooks.prompt_open_in_browser(labeled_urls, noun="workbook")

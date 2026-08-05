@@ -19,6 +19,7 @@ def step_run_status(context, expected):
 
 @then('within {minutes:d} minutes table "{table}" has at least 1 new row')
 def step_law_has_new_row(context, minutes, table):
+    # Safe against pre-existing rows — see trigger_logic_app()'s docstring.
     anchor = context.trigger_time.strftime("%Y-%m-%dT%H:%M:%SZ")
     kql = f'{table} | where TimeGenerated >= datetime("{anchor}") | limit 1'
     timeout = minutes * 60

@@ -41,6 +41,29 @@ def accumulate_run(context, config):
             })
 
 
+def prompt_open_in_browser(labeled_urls: list, noun: str) -> None:
+    """
+    Offer to open each (label, url) pair in *labeled_urls* in the browser.
+    Reads the y/N answer from /dev/tty (bypassing behave's captured stdin,
+    which would otherwise swallow interactive input). No-op if there's
+    nothing to offer or stdin isn't a real terminal (e.g. CI runs).
+    """
+    if not labeled_urls or not sys.stdin.isatty():
+        return
+
+    print(f"\nOpen {len(labeled_urls)} {noun}(s) in browser? [y/N] ", end="", flush=True)
+    try:
+        with open("/dev/tty") as tty:
+            answer = tty.readline().strip().lower()
+    except OSError:
+        answer = ""
+
+    if answer == "y":
+        for label, url in labeled_urls:
+            print(f"  Opening {label}")
+            subprocess.run(["open", url], check=False)
+
+
 def after_all(context, config):
     """Disable all test Logic Apps and offer to open run URLs in browser."""
     print("\n=== Disabling test logic apps ===")
@@ -53,23 +76,16 @@ def after_all(context, config):
             print(f"  [disable] {name} skipped: {exc}")
 
     runs = getattr(context, "completed_runs", [])
-    if runs and sys.stdin.isatty():
-        print(f"\nOpen {len(runs)} logic app run(s) in browser? [y/N] ", end="", flush=True)
-        try:
-            with open("/dev/tty") as tty:
-                answer = tty.readline().strip().lower()
-        except OSError:
-            answer = ""
-
-        if answer == "y":
-            tenant = config.PORTAL_TENANT
-            sub = config.SUBSCRIPTION_ID
-            rg = config.RESOURCE_GROUP
-            for r in runs:
-                url = (
-                    f"https://portal.azure.com/#@{tenant}"
-                    f"/resource/subscriptions/{sub}/resourceGroups/{rg}"
-                    f"/providers/Microsoft.Logic/workflows/{r['app_name']}/logicApp"
-                )
-                print(f"  Opening {r['scenario']} ({r['status']}): {r['app_name']}")
-                subprocess.run(["open", url], check=False)
+    tenant = config.PORTAL_TENANT
+    sub = config.SUBSCRIPTION_ID
+    rg = config.RESOURCE_GROUP
+    labeled_urls = [
+        (
+            f"{r['scenario']} ({r['status']}): {r['app_name']}",
+            f"https://portal.azure.com/#@{tenant}"
+            f"/resource/subscriptions/{sub}/resourceGroups/{rg}"
+            f"/providers/Microsoft.Logic/workflows/{r['app_name']}/logicApp",
+        )
+        for r in runs
+    ]
+    prompt_open_in_browser(labeled_urls, noun="logic app run")

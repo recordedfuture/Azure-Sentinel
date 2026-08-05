@@ -9,6 +9,7 @@ longer be referenced directly now that the templates resolve them via
 reference() at ARM deploy time.
 """
 import os
+import uuid
 from datetime import date
 from pathlib import Path
 
@@ -72,8 +73,39 @@ TABLE_CLASSIC_ALERTS    = "RecordedFutureClassicAlerts_V2_CL"
 TABLE_THREATMAP         = "RecordedFutureThreatMap_V2_CL"
 TABLE_THREATMAP_MALWARE = "RecordedFutureThreatMapMalware_V2_CL"
 
+# ── ThreatHunting workbooks (deployed alongside the ThreatMap playbooks) ──────
+# Like the analytic rules, these are deployed idempotently with a fixed,
+# deterministic resource name/ID on every before_all — no date/suffix scoping
+# — so re-running the suite always updates the same workbook resource in
+# place rather than creating a new one each day.
+_WORKBOOKS_DIR = _SOLUTIONS / "Workbooks"
+
+WORKBOOK_TEMPLATES = {
+    "threatactor_workbook": {
+        "path": _WORKBOOKS_DIR / "RecordedFutureThreatActorHunting.json",
+        "display_name": "Recorded Future - Threat Actor Hunting",
+        "id": str(uuid.uuid5(uuid.NAMESPACE_URL, "rf-e2e-threatactor-workbook")),
+    },
+    "malware_workbook": {
+        "path": _WORKBOOKS_DIR / "RecordedFutureMalwareThreatHunting.json",
+        "display_name": "Recorded Future - Malware Threat Hunting",
+        "id": str(uuid.uuid5(uuid.NAMESPACE_URL, "rf-e2e-malware-workbook")),
+    },
+}
+
+
 # ── Shared RF connection (already Connected in rf-erik) ───────────────────────
 RF_CONNECTION_NAME = "RecordedFuture-ConnectorV2"
+
+# ── Shared RF custom connector used by the ThreatMap playbooks ────────────────
+# (a different Microsoft.Web/connections resource than RF_CONNECTION_NAME above
+# — backed by Microsoft.Web/customApis/RecordedFuture-CustomConnector, whose
+# swagger bakes in host=api.recordedfuture.com, basePath=/gw/azure and exposes
+# a single connectionParameter: api_key (securestring). Its value isn't
+# readable via GET (Azure never returns secure connection params), so the
+# fix-if-needed step always (re)sets it rather than trying to detect staleness.
+RF_CUSTOM_CONNECTOR_NAME = "Recordedfuture-CustomConnector"
+
 
 # ── Test Logic App names (date-scoped + suffix) ───────────────────────────────
 _TODAY = date.today().strftime("%Y%m%d")

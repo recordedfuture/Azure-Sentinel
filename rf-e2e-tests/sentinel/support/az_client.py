@@ -23,6 +23,50 @@ def verify_rf_connection(
     return get_connection_status(conn_name, rg) == "Connected"
 
 
+def ensure_rf_connection_configured(
+    conn_name: str = config.RF_CUSTOM_CONNECTOR_NAME,
+    rg: str = config.RESOURCE_GROUP,
+) -> None:
+    """
+    Ensure the RecordedFuture-CustomConnector connection (used by the
+    ThreatMap playbooks) has a valid api_key connection parameter set.
+
+    This connector's Microsoft.Web/customApis definition bakes host/basePath
+    (api.recordedfuture.com/gw/azure) into its swagger — the only real
+    connectionParameter is api_key (securestring). Azure never returns secure
+    parameter values via GET, so staleness can't be detected; instead this
+    always (re)sets api_key from config.RF_TOKEN via `az rest PUT`; each such
+    PUT is a no-op from the connector's perspective if the value is already
+    correct. This matters because the connection can report status
+    "Connected" while api_key is unset/stale, in which case the ThreatMap
+    playbooks 403 at runtime — not something the deploy step fixes on its own.
+    """
+    sub = config.SUBSCRIPTION_ID
+    url = (
+        f"https://management.azure.com/subscriptions/{sub}/resourceGroups/{rg}"
+        f"/providers/Microsoft.Web/connections/{conn_name}?api-version=2016-06-01"
+    )
+    body = _rest("GET", url, check=False)
+    assert body, f"RF connection '{conn_name}' not found in {rg}"
+
+    props = body.get("properties", {})
+    props["customParameterValues"] = {"api_key": config.RF_TOKEN}
+    body["properties"] = props
+    for key in ("id", "name", "type"):
+        body.pop(key, None)
+    _rest("PUT", url, body)
+    print(f"  RF connection '{conn_name}' api_key (re)set")
+
+    statuses = props.get("statuses", [])
+    status = statuses[0].get("status") if statuses else None
+    valid = getattr(config, "VALID_CONN_STATUSES", {"Connected"})
+    assert status in valid, (
+        f"RF connection '{conn_name}' status is '{status}' after setting "
+        f"api_key (expected one of {valid})."
+    )
+    print(f"\n  RF connector {conn_name}: {status} (api_key set)")
+
+
 def list_sentinel_incidents(
     workspace: str = config.LAW_NAME,
     rg: str = config.RESOURCE_GROUP,
