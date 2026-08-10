@@ -298,6 +298,7 @@ def wait_for_role_assignments(keys: list, timeout: int = 600, poll: int = 15) ->
         "alert_importer":          "recorded-future-dcr-classic-alerts",
         "threatmap":               "recorded-future-dcr-threatmap",
         "threatmap_malware":       "recorded-future-dcr-threatmap-malware",
+        "sandbox_storage_account": "recorded-future-dcr-sandbox-results",
     }
     extra_scope_map = {
         "alert_importer": (

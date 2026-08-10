@@ -25,6 +25,7 @@ def _deploy_one(key: str, context) -> str:
         "alert_importer":          config.TEMPLATE_ALERT_IMPORTER,
         "threatmap":               config.TEMPLATE_THREATMAP_IMPORTER,
         "threatmap_malware":       config.TEMPLATE_THREATMAP_MALWARE_IMPORTER,
+        "sandbox_storage_account": config.TEMPLATE_SANDBOX_STORAGE_ACCOUNT,
     }[key]
 
     with open(template_path) as f:
@@ -35,10 +36,13 @@ def _deploy_one(key: str, context) -> str:
     elif key == "alert_importer":
         tmp = write_temp(patch_alert(template))
     else:
-        # threatmap / threatmap_malware: no alert-pinning patcher needed.
-        # Both playbooks send the full current threat map as a single row
-        # per run (no per-alert filtering to pin), so they're deployed
-        # unpatched — confirmed while writing the ThreatMap E2E scenarios.
+        # threatmap / threatmap_malware / sandbox_storage_account: no
+        # alert-pinning patcher needed. ThreatMap playbooks send the full
+        # current threat map as a single row per run (no per-alert filtering
+        # to pin); the Sandbox StorageAccount playbook's blob path is already
+        # hardcoded in the template itself (see
+        # sandbox_client.ensure_sandbox_storage_fixture()), so no patch is
+        # needed there either — deployed unpatched.
         tmp = _write_unpatched(template)
 
     try:

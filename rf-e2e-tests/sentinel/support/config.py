@@ -48,6 +48,10 @@ TEMPLATE_THREATMAP_MALWARE_IMPORTER = (
     _SOLUTIONS / "Playbooks" / "ThreatHunting"
     / "RecordedFuture-ThreatMapMalware-Importer" / "azuredeploy.json"
 )
+TEMPLATE_SANDBOX_STORAGE_ACCOUNT = (
+    _SOLUTIONS / "Playbooks" / "Sandboxing"
+    / "RecordedFuture-Sandbox_StorageAccount" / "azuredeploy.json"
+)
 
 # ── ThreatHunting workbooks (deployed alongside the ThreatMap playbooks) ──────
 # Like the analytic rules, these are deployed idempotently with a fixed,
@@ -82,6 +86,32 @@ RF_CONNECTION_NAME = "RecordedFuture-ConnectorV2"
 # fix-if-needed step always (re)sets it rather than trying to detect staleness.
 RF_CUSTOM_CONNECTOR_NAME = "Recordedfuture-CustomConnector"
 
+# ── Sandbox playbooks ──────────────────────────────────────────────────────────
+# RecordedFuture-Sandbox_StorageAccount's blob-fetch actions have a HARDCODED
+# blob path baked into the ARM template itself (base64-encoded action metadata,
+# not a parameter): container "testing", blob "calc.exe". These names are not
+# configurable — the fixture must create a storage account with exactly this
+# container/blob, matching the template, not the other way around.
+SANDBOX_STORAGE_ACCOUNT_NAME = "rfe2esandboxsa"
+SANDBOX_BLOB_CONTAINER = "testing"
+SANDBOX_BLOB_NAME = "calc.exe"
+SANDBOX_BLOB_CONTENT = (
+    b"This is a placeholder test file used for Recorded Future Sandbox E2E "
+    b"testing. It is plain text, not a real executable, despite the .exe name "
+    b"(required to match a hardcoded path in the ARM template)."
+)
+
+# Sandbox API credentials — TWO separate things are needed, both using the
+# same $SANDBOX_API_PROD token (confirmed live; the AZURE_SANDBOX_TOKEN_*
+# variants all gave 401 "Bad authorization token" at the actual scan step):
+#   1. Recordedfuturesandbo connection-level api_key (a real connectionParameter
+#      on this connector, unlike RF_CUSTOM_CONNECTOR_NAME's ThreatMap swagger-
+#      only connector) — fixed via ensure_sandbox_connector_configured().
+#   2. The "Enterprise Sandbox API Key" ARM parameter, passed per-action as a
+#      SandboxToken header by the playbook itself (not connection-level).
+SANDBOX_API_TOKEN = os.environ["SANDBOX_API_PROD"]
+SANDBOX_CONNECTOR_NAME = "Recordedfuture-SandboConnection"
+
 
 # ── Test Logic App names (date-scoped + suffix) ───────────────────────────────
 _TODAY = date.today().strftime("%Y%m%d")
@@ -93,6 +123,7 @@ LOGIC_APP_NAMES = {
     "alert_importer":          f"rf-sent-{_TODAY}-{_SUFFIX}-alert",
     "threatmap":               f"rf-sent-{_TODAY}-{_SUFFIX}-threatmap",
     "threatmap_malware":       f"rf-sent-{_TODAY}-{_SUFFIX}-threatmap-mal",
+    "sandbox_storage_account": f"rf-sent-{_TODAY}-{_SUFFIX}-sandbox-sa",
 }
 
 # ARM parameters per scenario (DceEndpoint/DcrImmutableId/StreamName passed explicitly
@@ -115,17 +146,35 @@ SCENARIO_PARAMS = {
         "PlaybookName": LOGIC_APP_NAMES["threatmap_malware"],
         "create_role_assignment": True,
     },
+    "sandbox_storage_account": {
+        "PlaybookName": LOGIC_APP_NAMES["sandbox_storage_account"],
+        "Enterprise Sandbox API Key": SANDBOX_API_TOKEN,
+        "create_role_assignment": True,
+    },
 }
 
 # Required API connections per scenario: {prefix: required}
 # RecordedFuture-ConnectorV2 is shared and already Connected — checked globally.
 # alert_importer also needs azuremonitorlogs for the watermark query.
+# sandbox_storage_account's Azureblob-* connection is fixed up directly by
+# ensure_blob_storage_configured() in before_all (real accountName/accessKey),
+# not via the OAuth-consent flow, so it's not listed here as "required".
 REQUIRED_CONN_PREFIXES = {
     "playbook_alert_importer": {"Azuremonitorlogs": False},
     "alert_importer":          {"Azuremonitorlogs": True},
     "threatmap":               {},
     "threatmap_malware":       {},
+    "sandbox_storage_account": {},
 }
 
 ALL_LOGIC_APP_NAMES = LOGIC_APP_NAMES
 ALL_REQUIRED_CONN_PREFIXES = REQUIRED_CONN_PREFIXES
+
+# Per-scenario override of RUN_TIMEOUT_SECONDS, read by the shared
+# step_trigger_and_wait step. Only sandbox_storage_account needs longer than
+# the default 180s — it makes a real external API call (submit file to RF
+# Sandbox, poll for a report) that took ~3-6 minutes in live testing. Every
+# other scenario keeps the default, unaffected.
+RUN_TIMEOUT_OVERRIDES = {
+    "sandbox_storage_account": 600,
+}

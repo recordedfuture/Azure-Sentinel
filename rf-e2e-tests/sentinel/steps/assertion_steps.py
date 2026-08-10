@@ -138,3 +138,44 @@ def step_incident_created_count(context, minutes):
     print(f"\n  Incident: {props['title']}")
     print(f"  Severity: {props['severity']}")
     print(f"  Status:   {props['status']}")
+
+
+@then('within {minutes:d} minutes table "{table}" has a row where "{column}" equals "{value}" with non-empty columns "{columns}"')
+def step_law_has_row_with_columns(context, minutes, table, column, value, columns):
+    """
+    For playbooks that write one flat row per event (e.g. Sandbox results) —
+    as opposed to ThreatMap's one-JSON-array-per-run shape. Asserts a new row
+    exists where {column} == {value}, and that each of the given {columns} is
+    present and non-empty/non-null on that row. Catches both outright
+    ingestion failures (no row) and shape regressions (row landed but a field
+    is missing/empty, e.g. an upstream mapping bug).
+
+    Safe against pre-existing rows — see trigger_logic_app()'s docstring.
+    """
+    required_columns = [c.strip() for c in columns.split(",")]
+    anchor = context.trigger_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+    kql = (
+        f'{table} | where TimeGenerated >= datetime("{anchor}") '
+        f'| where {column} == "{value}" | order by TimeGenerated desc | limit 1'
+    )
+    timeout = minutes * 60
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        rows = az_client.query_law(kql)
+        if rows:
+            row = rows[0]
+            empty = [c for c in required_columns if not row.get(c)]
+            assert not empty, (
+                f"Row in {table} where {column}=='{value}' has empty/missing "
+                f"columns: {empty}. Row: {row}"
+            )
+            print(f"\n  Found row in {table} where {column}=='{value}' "
+                  f"with all expected columns populated: {required_columns}")
+            return
+        remaining = int(deadline - time.time())
+        print(f"\n  No row in {table} where {column}=='{value}' yet, "
+              f"retrying ({remaining}s remaining)...")
+        time.sleep(config.LAW_POLL_INTERVAL_SECONDS)
+    raise AssertionError(
+        f"Table '{table}' has no row where {column}=='{value}' after {minutes} minutes"
+    )

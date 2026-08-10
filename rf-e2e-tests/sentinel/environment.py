@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from rf_e2e_tests import connections, shared_hooks
 from support import az_client, config, rf_client
-from support import deployment
+from support import deployment, sandbox_client
 
 
 def _keys_to_deploy(context) -> list:
@@ -18,6 +18,8 @@ def _keys_to_deploy(context) -> list:
         keys += ["playbook_alert_importer", "alert_importer"]
     if shared_hooks.tag_active(context, "threatmap"):
         keys += ["threatmap", "threatmap_malware"]
+    if shared_hooks.tag_active(context, "sandbox"):
+        keys += ["sandbox_storage_account"]
     return keys
 
 
@@ -33,6 +35,13 @@ def before_all(context):
         # when data lands — rules only pick up rows written after they are enabled.
         deployment.deploy_analytic_rules()
 
+    sandbox_active = shared_hooks.tag_active(context, "sandbox")
+    if sandbox_active:
+        print("\n=== [sandbox] Ensuring storage fixture ===")
+        sandbox_storage_key = sandbox_client.ensure_sandbox_storage_fixture()
+        print("\n=== [sandbox] Fixing Sandbox connector configuration ===")
+        sandbox_client.ensure_sandbox_connector_configured()
+
     keys = _keys_to_deploy(context)
     if keys:
         deployment.deploy_all(keys, context)
@@ -46,6 +55,13 @@ def before_all(context):
             config.RESOURCE_GROUP,
             config.VALID_CONN_STATUSES,
         )
+
+        if sandbox_active and "sandbox_storage_account" in keys:
+            print("\n=== [sandbox] Wiring Azureblob connection ===")
+            sandbox_client.ensure_blob_connection_configured(
+                playbook_name=config.LOGIC_APP_NAMES["sandbox_storage_account"],
+                account_key=sandbox_storage_key,
+            )
 
         print("\n=== Waiting for role assignment propagation ===")
         az_client.wait_for_role_assignments(keys)
