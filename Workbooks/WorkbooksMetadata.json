@@ -11069,5 +11069,67 @@
     "templateRelativePath": "PRODAFTUstaATPOverview.json",
     "subtitle": "",
     "provider": "PRODAFT"
-  }
+  },
+  {
+    "workbookKey": "PRODAFTUstaPCFIWorkbook",
+    "logoFileName": "PRODAFTUstaPCFI.svg",
+    "description": "Gain insights into compromised payment cards ingested from PRODAFT USTA Payment Card Fraud Intelligence: exposure over time, affected companies, card brands, ticket status, and validity (expired vs still-valid).",
+    "dataTypesDependencies": [
+      "PRODAFTUstaCompromisedCards_CL"
+    ],
+    "dataConnectorsDependencies": [
+      "PRODAFTUstaPCFICCPDefinition"
+    ],
+    "previewImagesFileNames": [
+      "PRODAFTUstaPCFIWhite1.png",
+      "PRODAFTUstaPCFIWhite2.png",
+      "PRODAFTUstaPCFIBlack1.png",
+      "PRODAFTUstaPCFIBlack2.png"
+    ],
+    "version": "1.0.0",
+    "title": "PRODAFT USTA - Payment Card Fraud Intelligence",
+    "templateRelativePath": "PRODAFTUstaPCFIOverview.json",
+    "subtitle": "",
+    "provider": "PRODAFT"
+  },
+  {
+    "workbookKey": "DomainToolCCFWorkbook",
+    "logoFileName": "DomainTools.svg",
+    "description": "# DomainTools CCF workbook provides insights into domains flagged by DomainTools, their ingestion frequency, domain types.",
+    "dataTypesDependencies": [
+        "DomainToolsThreatIntelDomains_CL"
+    ],
+    "dataConnectorsDependencies": [
+        "DomainToolsCCFDefinition"
+    ],
+    "previewImagesFileNames": [
+        "DomainToolsCCFWorkbookWhite.png",
+        "DomainToolsCCFWorkbookBlack.png"
+    ],
+    "version": "1.0",
+    "title": "DomainTools Threat Intelligence CCF Dashboards",
+    "templateRelativePath": "DomainTools_workbook.json",
+    "subtitle": "",
+    "provider": "DomainTools"
+	},
+  {
+      "workbookKey": "CayosoftGuardianThreatsWorkbook",
+      "logoFileName": "cayosoft-logo.svg",
+      "description": "Provides visual insights into Cayosoft Guardian Threat alerts, including severity breakdowns, trends, affected systems, and links to related incidents.",
+      "dataTypesDependencies": [
+        "CayosoftThreatAlerts_CL"
+      ],
+      "dataConnectorsDependencies": [
+        "CayosoftGuardianConnector"
+      ],
+      "previewImagesFileNames": [
+        "CayosoftGuardianIncidentsWorkbookBlack.png",
+        "CayosoftGuardianIncidentsWorkbookWhite.png"
+      ],
+      "version": "1.0",
+      "title": "Cayosoft Guardian - Incidents Dashboard",
+      "templateRelativePath": "WorkbookContent.json",
+      "subtitle": "",
+      "provider": "Cayosoft"
+    }  
 ]
