@@ -280,6 +280,8 @@ There is a general limitation of ***3*** fields in the alert description. More i
 
 These analytic are available under `Microsoft Sentinel -> Configuration -> Analytics -> Rule Templates`.
 
+We have also provided these rules as `.JSON` that be imported under `Microsoft Sentinel -> Configuration -> Analytics -> Import`
+
 
 # Upgrade from previous versions
 Information about latest released version number can be found in Recorded Future Intelligence Solution [release notes](../ReleaseNotes.md). There can be delay to the version available inside the content hub and whats in listed here due to publish/rollout time.
