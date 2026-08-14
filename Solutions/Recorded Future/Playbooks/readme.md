@@ -280,7 +280,7 @@ There is a general limitation of ***3*** fields in the alert description. More i
 
 These analytic are available under `Microsoft Sentinel -> Configuration -> Analytics -> Rule Templates`.
 
-We have also provided these rules as `.JSON` that be imported under `Microsoft Sentinel -> Configuration -> Analytics -> Import`
+We have also provided these rules as `.JSON` located in the folder `Recorded Future/Analytic Rules/IncidentCreation` that can be imported under `Microsoft Sentinel -> Configuration -> Analytics -> Import`
 
 
 # Upgrade from previous versions
