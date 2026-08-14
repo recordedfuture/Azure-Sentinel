@@ -1,0 +1,72 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/a1b2c3d4-5678-90ab-cdef-333333333333')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/a1b2c3d4-5678-90ab-cdef-333333333333')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "NRT",
+            "apiVersion": "2023-12-01-preview",
+            "properties": {
+                "displayName": "Recorded Future Sandbox - Malicious File in Storage Account",
+                "description": "Creates incidents when Recorded Future Sandbox detects malicious files from Azure Storage Account",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "RecordedFutureSandboxResults_V2_CL\n| where TimeGenerated >= now(-1h)\n| where Source == \"StorageAccount\"\n| where toint(SandboxScore) >= 50",
+                "suppressionDuration": "PT1H",
+                "suppressionEnabled": false,
+                "tactics": [],
+                "techniques": [],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT1H",
+                        "matchingMethod": "Selected",
+                        "groupByEntities": null,
+                        "groupByAlertDetails": null,
+                        "groupByCustomDetails": [
+                            "SandboxVerdict"
+                        ]
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": {
+                    "alertDisplayNameFormat": "Malicious File in Storage: {{FileName}}",
+                    "alertDescriptionFormat": "Recorded Future Sandbox - Malicious File in Storage Account. Sandbox Score: {{SandboxScore}}/100. Verdict: {{SandboxVerdict}}. Sample ID: {{SampleId}}. A malicious file was detected in an Azure Storage Account. Investigate the source of this file and review the full sandbox report."
+                },
+                "customDetails": {
+                    "Source": "Source",
+                    "SandboxScore": "SandboxScore",
+                    "SandboxVerdict": "SandboxVerdict",
+                    "FileName": "FileName",
+                    "SampleId": "SampleId"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "File",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "FileName"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+            }
+        }
+    ]
+}
