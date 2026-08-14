@@ -22,8 +22,8 @@ Data is added as a **comment** in the incident. To reduce noise, the playbook om
 Enable automatic enrichment by mapping enrichments to alerts using a <a href="https://learn.microsoft.com/en-us/azure/sentinel/detect-threats-custom#alert-enrichment" target="_blank">custom analytics rule</a>
 
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FAzure-Sentinel%2Fmaster%2FSolutions%2FRecorded%2520Future%2FPlaybooks%2FEnrichment%2FRecordedFuture-IOC_Enrichment%2Fazuredeploy.json" target="_blank">![Deploy to Azure](https://aka.ms/deploytoazurebutton)</a>
-<a href="https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FAzure-Sentinel%2Fmaster%2FSolutions%2FRecorded%2520Future%2FPlaybooks%2FEnrichment%2FRecordedFuture-IOC_Enrichment%2Fazuredeploy.json" target="_blank">![Deploy to Azure Gov](https://aka.ms/deploytoazuregovbutton)</a>
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Frecordedfuture%2FAzure-Sentinel%2Flog-ingestion-api%2FSolutions%2FRecorded%2520Future%2FPlaybooks%2FEnrichment%2FRecordedFuture-IOC_Enrichment%2Fazuredeploy.json" target="_blank">![Deploy to Azure](https://aka.ms/deploytoazurebutton)</a>
+<a href="https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Frecordedfuture%2FAzure-Sentinel%2Flog-ingestion-api%2FSolutions%2FRecorded%2520Future%2FPlaybooks%2FEnrichment%2FRecordedFuture-IOC_Enrichment%2Fazuredeploy.json" target="_blank">![Deploy to Azure Gov](https://aka.ms/deploytoazuregovbutton)</a>
 
 
 ## Automate Incident Enrichment

@@ -1,0 +1,83 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/a1b2c3d4-5678-90ab-cdef-222222222222')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/a1b2c3d4-5678-90ab-cdef-222222222222')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "NRT",
+            "apiVersion": "2023-12-01-preview",
+            "properties": {
+                "displayName": "Recorded Future Sandbox - Malicious Email Attachment",
+                "description": "Creates incidents when Recorded Future Sandbox detects malicious files from Outlook email attachments",
+                "severity": "High",
+                "enabled": true,
+                "query": "RecordedFutureSandboxResults_V2_CL\n| where TimeGenerated >= now(-1h)\n| where Source == \"OutlookAttachment\"\n| where toint(SandboxScore) >= 50",
+                "suppressionDuration": "PT1H",
+                "suppressionEnabled": false,
+                "tactics": [],
+                "techniques": [],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT1H",
+                        "matchingMethod": "Selected",
+                        "groupByEntities": null,
+                        "groupByAlertDetails": null,
+                        "groupByCustomDetails": [
+                            "EmailFrom"
+                        ]
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": {
+                    "alertDisplayNameFormat": "Malicious Email Attachment: {{FileName}} from {{EmailFrom}}",
+                    "alertDescriptionFormat": "Recorded Future Sandbox - Malicious Email Attachment Detected. Sandbox Score: {{SandboxScore}}/100. Verdict: {{SandboxVerdict}}. Sample ID: {{SampleId}}. A malicious file was detected in an email attachment. Review the full sandbox report and investigate the sender."
+                },
+                "customDetails": {
+                    "Source": "Source",
+                    "SandboxScore": "SandboxScore",
+                    "SandboxVerdict": "SandboxVerdict",
+                    "FileName": "FileName",
+                    "SampleId": "SampleId",
+                    "EmailFrom": "EmailFrom",
+                    "EmailTo": "EmailTo"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "File",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "FileName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Mailbox",
+                        "fieldMappings": [
+                            {
+                                "identifier": "MailboxPrimaryAddress",
+                                "columnName": "EmailFrom"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+            }
+        }
+    ]
+}
