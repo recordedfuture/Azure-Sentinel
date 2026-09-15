@@ -134,6 +134,10 @@
                         {
                             "name": "link",
                             "type": "string"
+                        },
+                        {
+                            "name": "owner_organisation_details",
+                            "type": "dynamic"
                         }
                     ]
                 },
@@ -196,6 +200,10 @@
                         {
                             "name": "Fragment",
                             "type": "string"
+                        },
+                        {
+                            "name": "OwnerOrganisationDetails",
+                            "type": "dynamic"
                         }
                     ]
                 },
@@ -366,6 +374,10 @@
                             {
                                 "name": "link",
                                 "type": "string"
+                            },
+                            {
+                                "name": "owner_organisation_details",
+                                "type": "dynamic"
                             }
                         ]
                     }
@@ -386,7 +398,7 @@
                         "destinations": [
                             "workspace"
                         ],
-                        "transformKql": "source | project TimeGenerated = datetime(null), alert_title = tostring(alert_title), id = tostring(id), category = tostring(category), rule_label = tostring(rule_label), status = tostring(status), priority = tostring(priority), created_date = todatetime(created_date), updated_date = todatetime(updated_date), targets = tostring(targets), evidence_summary = tostring(evidence_summary), alert_description = tostring(alert_description), link = tostring(link)",
+                        "transformKql": "source | project TimeGenerated = datetime(null), alert_title = tostring(alert_title), id = tostring(id), category = tostring(category), rule_label = tostring(rule_label), status = tostring(status), priority = tostring(priority), created_date = todatetime(created_date), updated_date = todatetime(updated_date), targets = tostring(targets), evidence_summary = tostring(evidence_summary), alert_description = tostring(alert_description), link = tostring(link), owner_organisation_details = todynamic(tostring(owner_organisation_details))",
                         "outputStream": "[variables('StreamPlaybookAlertsName')]"
                     }
                 ]
@@ -453,6 +465,10 @@
                             {
                                 "name": "Fragment",
                                 "type": "string"
+                            },
+                            {
+                                "name": "OwnerOrganisationDetails",
+                                "type": "dynamic"
                             }
                         ]
                     }
@@ -473,7 +489,7 @@
                         "destinations": [
                             "workspace"
                         ],
-                        "transformKql": "source | project TimeGenerated = datetime(null), RuleName = tostring(RuleName), RuleId = tostring(RuleId), Triggered = todatetime(Triggered), AlertName = tostring(AlertName), AlertID = tostring(AlertID), Entity = todynamic(tostring(Entity)), Documents = todynamic(tostring(Documents)), URL = tostring(URL), Document_url = tostring(Document_url), AISummary = tostring(AISummary), Fragment = tostring(Fragment)",
+                        "transformKql": "source | project TimeGenerated = datetime(null), RuleName = tostring(RuleName), RuleId = tostring(RuleId), Triggered = todatetime(Triggered), AlertName = tostring(AlertName), AlertID = tostring(AlertID), Entity = todynamic(tostring(Entity)), Documents = todynamic(tostring(Documents)), URL = tostring(URL), Document_url = tostring(Document_url), AISummary = tostring(AISummary), Fragment = tostring(Fragment), OwnerOrganisationDetails = todynamic(tostring(OwnerOrganisationDetails))",
                         "outputStream": "[variables('StreamClassicAlertsName')]"
                     }
                 ]
