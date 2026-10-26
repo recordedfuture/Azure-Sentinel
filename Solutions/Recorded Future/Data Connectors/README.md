@@ -23,6 +23,23 @@ the Log Ingestion API (`RecordedFuture-Alert-Importer`, `RecordedFuture-Playbook
 `RecordedFuture-ThreatMap-Importer`, `RecordedFuture-ThreatMapMalware-Importer`,
 `RecordedFuture-Sandbox_StorageAccount`, `RecordedFuture-Sandbox_Outlook_Attachment`).
 
+### `RecordedFuture_PlaybookAlerts_ccf/` (preview)
+Codeless Connector Framework (CCF) connector for playbook alerts, replacing the
+`RecordedFuture-Playbook-Alert-Importer` Logic App.
+- `RecordedFuture_PlaybookAlerts_ConnectorDefinition.json`: the `RecordedFuturePlaybookAlertsCCF`
+  tile (`kind: Customizable`, API token, optional categories/priorities/statuses, connect toggle).
+- `RecordedFuture_PlaybookAlerts_PollerConfig.json`: the `RestApiPoller` (`GET /gw/azure/playbook-alert/export`,
+  `X-RFToken`, 60-minute window on `updated_from`/`updated_until`, offset paging `from`/`limit`=100).
+- `azuredeploy_RecordedFuture_PlaybookAlerts_ccf.json`: standalone template that deploys the tile and an
+  active poller directly, for manual testing without Content Hub.
+
+The poller has no DCR or table of its own: it writes to stream `Custom-RecordedFuturePlaybookAlerts_V2_CL`
+of the existing `recorded-future-dcr-playbook-alerts` DCR via `recorded-future-dce` (both from `azuredeploy.json`),
+looked up by name in the workspace resource group when the connector is connected. It is a separate tile
+because the packaged **Recorded Future - Log Ingestion** tile is a legacy `GenericUI` connector, which cannot
+host a CCF connect toggle. Its entries in `../Package/mainTemplate.json` were added by hand; it is not in
+`../Data/Solution_RecordedFuture.json` because the packaging tool expects CCF folders to contain their own DCR and table files.
+
 ## Known duplication
 
 ### Connector tile

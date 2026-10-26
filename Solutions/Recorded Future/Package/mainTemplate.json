@@ -327,6 +327,11 @@
     "workbookTemplateSpecName8": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat(parameters('workspace'),'-wb-',uniquestring(variables('_workbookContentId8'))))]",
     "_workbookContentId8": "[variables('workbookContentId8')]",
     "_workbookcontentProductId8": "[concat(take(variables('_solutionId'),50),'-','wb','-', uniqueString(concat(variables('_solutionId'),'-','Workbook','-',variables('_workbookContentId8'),'-', variables('workbookVersion8'))))]",
+    "dataConnectorCCPVersion": "1.0.0",
+    "_dataConnectorContentIdConnectorDefinition2": "RecordedFuturePlaybookAlertsCCF",
+    "dataConnectorTemplateNameConnectorDefinition2": "[concat(parameters('workspace'),'-dc-',uniquestring(variables('_dataConnectorContentIdConnectorDefinition2')))]",
+    "_dataConnectorContentIdConnections2": "RecordedFuturePlaybookAlertsCCFConnections",
+    "dataConnectorTemplateNameConnections2": "[concat(parameters('workspace'),'-dc-',uniquestring(variables('_dataConnectorContentIdConnections2')))]",
     "_solutioncontentProductId": "[concat(take(variables('_solutionId'),50),'-','sl','-', uniqueString(concat(variables('_solutionId'),'-','Solution','-',variables('_solutionId'),'-', variables('_solutionVersion'))))]"
   },
   "resources": [
@@ -688,6 +693,533 @@
           ],
           "id": "[variables('_uiConfigId1')]"
         }
+      }
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/contentTemplates",
+      "apiVersion": "2023-04-01-preview",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/', variables('dataConnectorTemplateNameConnectorDefinition2'), variables('dataConnectorCCPVersion'))]",
+      "location": "[parameters('workspace-location')]",
+      "dependsOn": [
+        "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
+      ],
+      "properties": {
+        "contentId": "[variables('_dataConnectorContentIdConnectorDefinition2')]",
+        "displayName": "Recorded Future - Playbook Alerts (Codeless Connector)",
+        "contentKind": "DataConnector",
+        "mainTemplate": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "[variables('dataConnectorCCPVersion')]",
+          "parameters": {},
+          "variables": {},
+          "resources": [
+            {
+              "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',variables('_dataConnectorContentIdConnectorDefinition2'))]",
+              "apiVersion": "2022-09-01-preview",
+              "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectorDefinitions",
+              "location": "[parameters('workspace-location')]",
+              "kind": "Customizable",
+              "properties": {
+                "connectorUiConfig": {
+                  "id": "RecordedFuturePlaybookAlertsCCF",
+                  "title": "Recorded Future - Playbook Alerts (Codeless Connector)",
+                  "publisher": "Recorded Future",
+                  "descriptionMarkdown": "Imports [Recorded Future Playbook Alerts](https://support.recordedfuture.com/hc/en-us/articles/13152506878739-Playbook-Alerting-Rules) into the `RecordedFuturePlaybookAlerts_V2_CL` table using the Microsoft Sentinel Codeless Connector Framework (CCF). Replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App. Requires the Recorded Future Data Connectors infrastructure (DCE, DCRs and tables) to be deployed in the workspace resource group first (see the **Recorded Future - Log Ingestion** connector).",
+                  "graphQueriesTableName": "RecordedFuturePlaybookAlerts_V2_CL",
+                  "graphQueries": [
+                    {
+                      "metricName": "Total playbook alerts received",
+                      "legend": "RecordedFuturePlaybookAlerts_V2_CL",
+                      "baseQuery": "{{graphQueriesTableName}}"
+                    }
+                  ],
+                  "sampleQueries": [
+                    {
+                      "description": "Recent playbook alerts",
+                      "query": "RecordedFuturePlaybookAlerts_V2_CL\n| sort by TimeGenerated desc"
+                    },
+                    {
+                      "description": "Latest state of each playbook alert",
+                      "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(updated_date, *) by id"
+                    }
+                  ],
+                  "dataTypes": [
+                    {
+                      "name": "RecordedFuturePlaybookAlerts_V2_CL",
+                      "lastDataReceivedQuery": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize Time = max(TimeGenerated)\n| where isnotempty(Time)"
+                    }
+                  ],
+                  "connectivityCriteria": [
+                    {
+                      "type": "HasDataConnectors"
+                    }
+                  ],
+                  "availability": {
+                    "isPreview": true,
+                    "status": 1
+                  },
+                  "permissions": {
+                    "resourceProvider": [
+                      {
+                        "provider": "Microsoft.OperationalInsights/workspaces",
+                        "permissionsDisplayText": "Read and Write permissions are required.",
+                        "providerDisplayName": "Workspace",
+                        "scope": "Workspace",
+                        "requiredPermissions": {
+                          "write": true,
+                          "read": true,
+                          "delete": true
+                        }
+                      }
+                    ],
+                    "customs": [
+                      {
+                        "name": "Recorded Future Data Connectors infrastructure",
+                        "description": "The shared DCE `recorded-future-dce` and DCR `recorded-future-dcr-playbook-alerts` must exist in the workspace resource group. Deploy them with Step 1 of the **Recorded Future - Log Ingestion** connector."
+                      },
+                      {
+                        "name": "Recorded Future API Token",
+                        "description": "A Recorded Future API token with access to Playbook Alerts."
+                      }
+                    ]
+                  },
+                  "instructionSteps": [
+                    {
+                      "title": "1. Disable the Logic App importer",
+                      "description": "If the `RecordedFuture-Playbook-Alert-Importer` Logic App is running, disable it before connecting, otherwise alerts are imported twice."
+                    },
+                    {
+                      "title": "2. Configure",
+                      "description": "Enter your Recorded Future API token. Filters are optional comma-separated lists; leave empty to import everything.\n\nCategories: `code_repo_leakage`, `domain_abuse`, `identity_novel_exposures`, `third_party_risk`, `cyber_vulnerability`, `dark_web`, `malicious_sites`, `socmed_impersonation`.\n\nPriorities: `High`, `Moderate`, `Informational`.\n\nStatuses: `New`, `InProgress`, `Dismissed`, `Resolved`.",
+                      "instructions": [
+                        {
+                          "type": "Textbox",
+                          "parameters": {
+                            "label": "API Token",
+                            "placeholder": "Recorded Future API token",
+                            "type": "password",
+                            "name": "apiKey",
+                            "validations": {
+                              "required": true
+                            }
+                          }
+                        },
+                        {
+                          "type": "Textbox",
+                          "parameters": {
+                            "label": "Categories (optional)",
+                            "placeholder": "e.g. domain_abuse,cyber_vulnerability",
+                            "type": "text",
+                            "name": "categories"
+                          }
+                        },
+                        {
+                          "type": "Textbox",
+                          "parameters": {
+                            "label": "Priorities (optional)",
+                            "placeholder": "e.g. High,Moderate",
+                            "type": "text",
+                            "name": "priorities"
+                          }
+                        },
+                        {
+                          "type": "Textbox",
+                          "parameters": {
+                            "label": "Statuses (optional)",
+                            "placeholder": "e.g. New,InProgress",
+                            "type": "text",
+                            "name": "statuses"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "title": "3. Connect",
+                      "description": "Start polling Recorded Future every hour.",
+                      "instructions": [
+                        {
+                          "type": "ConnectionToggleButton",
+                          "parameters": {
+                            "connectLabel": "Connect",
+                            "disconnectLabel": "Disconnect",
+                            "name": "toggle"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat('DataConnector-', variables('_dataConnectorContentIdConnectorDefinition2')))]",
+              "apiVersion": "2022-01-01-preview",
+              "type": "Microsoft.OperationalInsights/workspaces/providers/metadata",
+              "properties": {
+                "parentId": "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/dataConnectorDefinitions', variables('_dataConnectorContentIdConnectorDefinition2'))]",
+                "contentId": "[variables('_dataConnectorContentIdConnectorDefinition2')]",
+                "kind": "DataConnector",
+                "version": "[variables('dataConnectorCCPVersion')]",
+                "source": {
+                  "sourceId": "[variables('_solutionId')]",
+                  "name": "[variables('_solutionName')]",
+                  "kind": "Solution"
+                },
+                "author": {
+                  "name": "Recorded Future Premier Integrations",
+                  "email": "[variables('_email')]"
+                },
+                "support": {
+                  "name": "Recorded Future Premier Integrations",
+                  "email": "support@recordedfuture.com",
+                  "tier": "Partner",
+                  "link": "https://support.recordedfuture.com/"
+                },
+                "dependencies": {
+                  "criteria": [
+                    {
+                      "version": "[variables('dataConnectorCCPVersion')]",
+                      "contentId": "[variables('_dataConnectorContentIdConnections2')]",
+                      "kind": "ResourcesDataConnector"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "packageKind": "Solution",
+        "packageVersion": "[variables('_solutionVersion')]",
+        "packageName": "[variables('_solutionName')]",
+        "packageId": "[variables('_solutionId')]",
+        "contentSchemaVersion": "3.0.0",
+        "version": "[variables('dataConnectorCCPVersion')]",
+        "contentProductId": "[concat(take(variables('_solutionId'), 50),'-','dc','-', uniqueString(concat(variables('_solutionId'),'-','DataConnector','-',variables('_dataConnectorContentIdConnectorDefinition2'),'-', variables('dataConnectorCCPVersion'))))]"
+      }
+    },
+    {
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',variables('_dataConnectorContentIdConnectorDefinition2'))]",
+      "apiVersion": "2022-09-01-preview",
+      "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectorDefinitions",
+      "location": "[parameters('workspace-location')]",
+      "kind": "Customizable",
+      "properties": {
+        "connectorUiConfig": {
+          "id": "RecordedFuturePlaybookAlertsCCF",
+          "title": "Recorded Future - Playbook Alerts (Codeless Connector)",
+          "publisher": "Recorded Future",
+          "descriptionMarkdown": "Imports [Recorded Future Playbook Alerts](https://support.recordedfuture.com/hc/en-us/articles/13152506878739-Playbook-Alerting-Rules) into the `RecordedFuturePlaybookAlerts_V2_CL` table using the Microsoft Sentinel Codeless Connector Framework (CCF). Replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App. Requires the Recorded Future Data Connectors infrastructure (DCE, DCRs and tables) to be deployed in the workspace resource group first (see the **Recorded Future - Log Ingestion** connector).",
+          "graphQueriesTableName": "RecordedFuturePlaybookAlerts_V2_CL",
+          "graphQueries": [
+            {
+              "metricName": "Total playbook alerts received",
+              "legend": "RecordedFuturePlaybookAlerts_V2_CL",
+              "baseQuery": "{{graphQueriesTableName}}"
+            }
+          ],
+          "sampleQueries": [
+            {
+              "description": "Recent playbook alerts",
+              "query": "RecordedFuturePlaybookAlerts_V2_CL\n| sort by TimeGenerated desc"
+            },
+            {
+              "description": "Latest state of each playbook alert",
+              "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(updated_date, *) by id"
+            }
+          ],
+          "dataTypes": [
+            {
+              "name": "RecordedFuturePlaybookAlerts_V2_CL",
+              "lastDataReceivedQuery": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize Time = max(TimeGenerated)\n| where isnotempty(Time)"
+            }
+          ],
+          "connectivityCriteria": [
+            {
+              "type": "HasDataConnectors"
+            }
+          ],
+          "availability": {
+            "isPreview": true,
+            "status": 1
+          },
+          "permissions": {
+            "resourceProvider": [
+              {
+                "provider": "Microsoft.OperationalInsights/workspaces",
+                "permissionsDisplayText": "Read and Write permissions are required.",
+                "providerDisplayName": "Workspace",
+                "scope": "Workspace",
+                "requiredPermissions": {
+                  "write": true,
+                  "read": true,
+                  "delete": true
+                }
+              }
+            ],
+            "customs": [
+              {
+                "name": "Recorded Future Data Connectors infrastructure",
+                "description": "The shared DCE `recorded-future-dce` and DCR `recorded-future-dcr-playbook-alerts` must exist in the workspace resource group. Deploy them with Step 1 of the **Recorded Future - Log Ingestion** connector."
+              },
+              {
+                "name": "Recorded Future API Token",
+                "description": "A Recorded Future API token with access to Playbook Alerts."
+              }
+            ]
+          },
+          "instructionSteps": [
+            {
+              "title": "1. Disable the Logic App importer",
+              "description": "If the `RecordedFuture-Playbook-Alert-Importer` Logic App is running, disable it before connecting, otherwise alerts are imported twice."
+            },
+            {
+              "title": "2. Configure",
+              "description": "Enter your Recorded Future API token. Filters are optional comma-separated lists; leave empty to import everything.\n\nCategories: `code_repo_leakage`, `domain_abuse`, `identity_novel_exposures`, `third_party_risk`, `cyber_vulnerability`, `dark_web`, `malicious_sites`, `socmed_impersonation`.\n\nPriorities: `High`, `Moderate`, `Informational`.\n\nStatuses: `New`, `InProgress`, `Dismissed`, `Resolved`.",
+              "instructions": [
+                {
+                  "type": "Textbox",
+                  "parameters": {
+                    "label": "API Token",
+                    "placeholder": "Recorded Future API token",
+                    "type": "password",
+                    "name": "apiKey",
+                    "validations": {
+                      "required": true
+                    }
+                  }
+                },
+                {
+                  "type": "Textbox",
+                  "parameters": {
+                    "label": "Categories (optional)",
+                    "placeholder": "e.g. domain_abuse,cyber_vulnerability",
+                    "type": "text",
+                    "name": "categories"
+                  }
+                },
+                {
+                  "type": "Textbox",
+                  "parameters": {
+                    "label": "Priorities (optional)",
+                    "placeholder": "e.g. High,Moderate",
+                    "type": "text",
+                    "name": "priorities"
+                  }
+                },
+                {
+                  "type": "Textbox",
+                  "parameters": {
+                    "label": "Statuses (optional)",
+                    "placeholder": "e.g. New,InProgress",
+                    "type": "text",
+                    "name": "statuses"
+                  }
+                }
+              ]
+            },
+            {
+              "title": "3. Connect",
+              "description": "Start polling Recorded Future every hour.",
+              "instructions": [
+                {
+                  "type": "ConnectionToggleButton",
+                  "parameters": {
+                    "connectLabel": "Connect",
+                    "disconnectLabel": "Disconnect",
+                    "name": "toggle"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat('DataConnector-', variables('_dataConnectorContentIdConnectorDefinition2')))]",
+      "apiVersion": "2022-01-01-preview",
+      "type": "Microsoft.OperationalInsights/workspaces/providers/metadata",
+      "properties": {
+        "parentId": "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/dataConnectorDefinitions', variables('_dataConnectorContentIdConnectorDefinition2'))]",
+        "contentId": "[variables('_dataConnectorContentIdConnectorDefinition2')]",
+        "kind": "DataConnector",
+        "version": "[variables('dataConnectorCCPVersion')]",
+        "source": {
+          "sourceId": "[variables('_solutionId')]",
+          "name": "[variables('_solutionName')]",
+          "kind": "Solution"
+        },
+        "author": {
+          "name": "Recorded Future Premier Integrations",
+          "email": "[variables('_email')]"
+        },
+        "support": {
+          "name": "Recorded Future Premier Integrations",
+          "email": "support@recordedfuture.com",
+          "tier": "Partner",
+          "link": "https://support.recordedfuture.com/"
+        },
+        "dependencies": {
+          "criteria": [
+            {
+              "version": "[variables('dataConnectorCCPVersion')]",
+              "contentId": "[variables('_dataConnectorContentIdConnections2')]",
+              "kind": "ResourcesDataConnector"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/contentTemplates",
+      "apiVersion": "2023-04-01-preview",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/', variables('dataConnectorTemplateNameConnections2'), variables('dataConnectorCCPVersion'))]",
+      "location": "[parameters('workspace-location')]",
+      "dependsOn": [
+        "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
+      ],
+      "properties": {
+        "contentId": "[variables('_dataConnectorContentIdConnections2')]",
+        "displayName": "Recorded Future - Playbook Alerts (Codeless Connector)",
+        "contentKind": "ResourcesDataConnector",
+        "mainTemplate": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "[variables('dataConnectorCCPVersion')]",
+          "parameters": {
+            "guidValue": {
+              "defaultValue": "[[newGuid()]",
+              "type": "securestring"
+            },
+            "innerWorkspace": {
+              "defaultValue": "[parameters('workspace')]",
+              "type": "securestring"
+            },
+            "connectorDefinitionName": {
+              "defaultValue": "Recorded Future - Playbook Alerts (Codeless Connector)",
+              "type": "securestring",
+              "minLength": 1
+            },
+            "workspace": {
+              "defaultValue": "[parameters('workspace')]",
+              "type": "securestring"
+            },
+            "dcrConfig": {
+              "defaultValue": {
+                "dataCollectionEndpoint": "data collection Endpoint",
+                "dataCollectionRuleImmutableId": "data collection rule immutableId"
+              },
+              "type": "object"
+            },
+            "apiKey": {
+              "defaultValue": "apiKey",
+              "type": "securestring",
+              "minLength": 1
+            },
+            "categories": {
+              "defaultValue": "",
+              "type": "string"
+            },
+            "priorities": {
+              "defaultValue": "",
+              "type": "string"
+            },
+            "statuses": {
+              "defaultValue": "",
+              "type": "string"
+            }
+          },
+          "variables": {
+            "_dataConnectorContentIdConnections2": "[variables('_dataConnectorContentIdConnections2')]"
+          },
+          "resources": [
+            {
+              "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat('DataConnector-', variables('_dataConnectorContentIdConnections2')))]",
+              "apiVersion": "2022-01-01-preview",
+              "type": "Microsoft.OperationalInsights/workspaces/providers/metadata",
+              "properties": {
+                "parentId": "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/dataConnectors', variables('_dataConnectorContentIdConnections2'))]",
+                "contentId": "[variables('_dataConnectorContentIdConnections2')]",
+                "kind": "ResourcesDataConnector",
+                "version": "[variables('dataConnectorCCPVersion')]",
+                "source": {
+                  "sourceId": "[variables('_solutionId')]",
+                  "name": "[variables('_solutionName')]",
+                  "kind": "Solution"
+                },
+                "author": {
+                  "name": "Recorded Future Premier Integrations",
+                  "email": "[variables('_email')]"
+                },
+                "support": {
+                  "name": "Recorded Future Premier Integrations",
+                  "email": "support@recordedfuture.com",
+                  "tier": "Partner",
+                  "link": "https://support.recordedfuture.com/"
+                }
+              }
+            },
+            {
+              "name": "[[concat(parameters('innerWorkspace'),'/Microsoft.SecurityInsights/', 'RecordedFuturePlaybookAlertsPoller', parameters('guidValue'))]",
+              "apiVersion": "2023-02-01-preview",
+              "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
+              "location": "[parameters('workspace-location')]",
+              "kind": "RestApiPoller",
+              "properties": {
+                "connectorDefinitionName": "RecordedFuturePlaybookAlertsCCF",
+                "dataType": "RecordedFuturePlaybookAlerts_V2_CL",
+                "dcrConfig": {
+                  "streamName": "Custom-RecordedFuturePlaybookAlerts_V2_CL",
+                  "dataCollectionEndpoint": "[[reference(resourceId('Microsoft.Insights/dataCollectionEndpoints', 'recorded-future-dce'), '2022-06-01').logsIngestion.endpoint]",
+                  "dataCollectionRuleImmutableId": "[[reference(resourceId('Microsoft.Insights/dataCollectionRules', 'recorded-future-dcr-playbook-alerts'), '2022-06-01').immutableId]"
+                },
+                "auth": {
+                  "type": "APIKey",
+                  "ApiKey": "[[parameters('apiKey')]",
+                  "ApiKeyName": "X-RFToken"
+                },
+                "request": {
+                  "apiEndpoint": "https://api.recordedfuture.com/gw/azure/playbook-alert/export",
+                  "httpMethod": "GET",
+                  "queryWindowInMin": 60,
+                  "queryTimeFormat": "yyyy-MM-ddTHH:mm:ssZ",
+                  "startTimeAttributeName": "updated_from",
+                  "endTimeAttributeName": "updated_until",
+                  "rateLimitQPS": 5,
+                  "retryCount": 3,
+                  "timeoutInSeconds": 120,
+                  "headers": {
+                    "Accept": "application/json",
+                    "User-Agent": "RecordedFuture-Sentinel-CCF"
+                  },
+                  "queryParameters": {
+                    "categories": "[[parameters('categories')]",
+                    "priorities": "[[parameters('priorities')]",
+                    "statuses": "[[parameters('statuses')]"
+                  }
+                },
+                "response": {
+                  "eventsJsonPaths": [
+                    "$.data"
+                  ],
+                  "format": "json"
+                },
+                "paging": {
+                  "pagingType": "Offset",
+                  "offsetParaName": "from",
+                  "pageSize": 100,
+                  "pageSizeParameterName": "limit"
+                }
+              }
+            }
+          ]
+        },
+        "packageKind": "Solution",
+        "packageVersion": "[variables('_solutionVersion')]",
+        "packageName": "[variables('_solutionName')]",
+        "packageId": "[variables('_solutionId')]",
+        "contentSchemaVersion": "3.0.0",
+        "version": "[variables('dataConnectorCCPVersion')]",
+        "contentProductId": "[concat(take(variables('_solutionId'), 50),'-','rdc','-', uniqueString(concat(variables('_solutionId'),'-','ResourcesDataConnector','-',variables('_dataConnectorContentIdConnections2'),'-', variables('dataConnectorCCPVersion'))))]"
       }
     },
     {
@@ -9752,6 +10284,11 @@
               "kind": "DataConnector",
               "contentId": "[variables('_dataConnectorContentId1')]",
               "version": "[variables('dataConnectorVersion1')]"
+            },
+            {
+              "kind": "DataConnector",
+              "contentId": "[variables('_dataConnectorContentIdConnections2')]",
+              "version": "[variables('dataConnectorCCPVersion')]"
             },
             {
               "kind": "AnalyticsRule",
