@@ -46,6 +46,9 @@
             }
         }
     },
+    "variables": {
+        "connectorUiName": "RecordedFuturePlaybookAlertsCCF"
+    },
     "resources": [
         {
             "name": "[concat(parameters('workspace'), '/Microsoft.SecurityInsights/RecordedFuturePlaybookAlertsCCF')]",
@@ -55,7 +58,7 @@
             "kind": "Customizable",
             "properties": {
                 "connectorUiConfig": {
-                    "id": "RecordedFuturePlaybookAlertsCCF",
+                    "id": "[variables('connectorUiName')]",
                     "title": "Recorded Future - Playbook Alerts (Codeless Connector)",
                     "publisher": "Recorded Future",
                     "descriptionMarkdown": "Imports [Recorded Future Playbook Alerts](https://support.recordedfuture.com/hc/en-us/articles/13152506878739-Playbook-Alerting-Rules) into the `RecordedFuturePlaybookAlerts_V2_CL` table using the Microsoft Sentinel Codeless Connector Framework (CCF). Replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App. Requires the Recorded Future Data Connectors infrastructure (DCE, DCRs and tables) to be deployed in the workspace resource group first (see the **Recorded Future - Log Ingestion** connector).",
@@ -196,8 +199,8 @@
                 "dataType": "RecordedFuturePlaybookAlerts_V2_CL",
                 "dcrConfig": {
                     "streamName": "Custom-RecordedFuturePlaybookAlerts_V2_CL",
-                    "dataCollectionEndpoint": "[reference(resourceId('Microsoft.Insights/dataCollectionEndpoints', 'recorded-future-dce'), '2022-06-01').logsIngestion.endpoint]",
-                    "dataCollectionRuleImmutableId": "[reference(resourceId('Microsoft.Insights/dataCollectionRules', 'recorded-future-dcr-playbook-alerts'), '2022-06-01').immutableId]"
+                    "dataCollectionEndpoint": "[reference(resourceId('Microsoft.Insights/dataCollectionEndpoints', 'recorded-future-dce'), '2024-03-11').logsIngestion.endpoint]",
+                    "dataCollectionRuleImmutableId": "[reference(resourceId('Microsoft.Insights/dataCollectionRules', 'recorded-future-dcr-playbook-alerts'), '2024-03-11').immutableId]"
                 },
                 "auth": {
                     "type": "APIKey",
