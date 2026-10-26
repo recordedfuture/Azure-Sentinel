@@ -47,7 +47,7 @@
             "paging": {
                 "pagingType": "Offset",
                 "offsetParaName": "from",
-                "pageSize": 100,
+                "pageSize": 25,
                 "pageSizeParameterName": "limit"
             }
         }

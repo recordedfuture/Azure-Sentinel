@@ -60,7 +60,7 @@
                 "customs": [
                     {
                         "name": "Recorded Future Data Connectors infrastructure",
-                        "description": "The shared DCE `recorded-future-dce` and DCR `recorded-future-dcr-playbook-alerts` must exist in the workspace resource group. Deploy them with Step 1 of the **Recorded Future - Log Ingestion** connector."
+                        "description": "The shared DCE `recorded-future-dce` and DCR `recorded-future-dcr-playbook-alerts` must exist, with exactly these names, in the same resource group as the workspace. The names are fixed and not configurable. Deploy them with Step 1 of the **Recorded Future - Log Ingestion** connector."
                     },
                     {
                         "name": "Recorded Future API Token",
@@ -75,7 +75,7 @@
                 },
                 {
                     "title": "2. Configure",
-                    "description": "Enter your Recorded Future API token. Filters are optional comma-separated lists; leave empty to import everything.\n\nCategories: `code_repo_leakage`, `domain_abuse`, `identity_novel_exposures`, `third_party_risk`, `cyber_vulnerability`, `dark_web`, `malicious_sites`, `socmed_impersonation`.\n\nPriorities: `High`, `Moderate`, `Informational`.\n\nStatuses: `New`, `InProgress`, `Dismissed`, `Resolved`.",
+                    "description": "Enter your Recorded Future API token. Filters are optional comma-separated lists; leave empty to import everything. Values are case-sensitive and must match exactly, e.g. `High,Moderate`.\n\nCategories: `code_repo_leakage`, `domain_abuse`, `identity_novel_exposures`, `third_party_risk`, `cyber_vulnerability`, `dark_web`, `malicious_sites`, `socmed_impersonation`.\n\nPriorities: `High`, `Moderate`, `Informational`.\n\nStatuses: `New`, `InProgress`, `Dismissed`, `Resolved`.",
                     "instructions": [
                         {
                             "type": "Textbox",
@@ -120,7 +120,7 @@
                 },
                 {
                     "title": "3. Connect",
-                    "description": "Start polling Recorded Future every hour.",
+                    "description": "Make sure the `RecordedFuture-Playbook-Alert-Importer` Logic App is disabled first to avoid duplicate alerts. Then start polling Recorded Future every hour.",
                     "instructions": [
                         {
                             "type": "ConnectionToggleButton",

@@ -97,7 +97,7 @@
     "email": "support@recordedfuture.com",
     "_email": "[variables('email')]",
     "_solutionName": "Recorded Future",
-    "_solutionVersion": "3.2.23",
+    "_solutionVersion": "3.2.24",
     "solutionId": "recordedfuture1605638642586.recorded_future_sentinel_solution",
     "_solutionId": "[variables('solutionId')]",
     "uiConfigId1": "RecordedFuture",
@@ -344,7 +344,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "Recorded Future data connector with template version 3.2.23",
+        "description": "Recorded Future data connector with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('dataConnectorVersion1')]",
@@ -775,7 +775,7 @@
                     "customs": [
                       {
                         "name": "Recorded Future Data Connectors infrastructure",
-                        "description": "The shared DCE `recorded-future-dce` and DCR `recorded-future-dcr-playbook-alerts` must exist in the workspace resource group. Deploy them with Step 1 of the **Recorded Future - Log Ingestion** connector."
+                        "description": "The shared DCE `recorded-future-dce` and DCR `recorded-future-dcr-playbook-alerts` must exist, with exactly these names, in the same resource group as the workspace. The names are fixed and not configurable. Deploy them with Step 1 of the **Recorded Future - Log Ingestion** connector."
                       },
                       {
                         "name": "Recorded Future API Token",
@@ -790,7 +790,7 @@
                     },
                     {
                       "title": "2. Configure",
-                      "description": "Enter your Recorded Future API token. Filters are optional comma-separated lists; leave empty to import everything.\n\nCategories: `code_repo_leakage`, `domain_abuse`, `identity_novel_exposures`, `third_party_risk`, `cyber_vulnerability`, `dark_web`, `malicious_sites`, `socmed_impersonation`.\n\nPriorities: `High`, `Moderate`, `Informational`.\n\nStatuses: `New`, `InProgress`, `Dismissed`, `Resolved`.",
+                      "description": "Enter your Recorded Future API token. Filters are optional comma-separated lists; leave empty to import everything. Values are case-sensitive and must match exactly, e.g. `High,Moderate`.\n\nCategories: `code_repo_leakage`, `domain_abuse`, `identity_novel_exposures`, `third_party_risk`, `cyber_vulnerability`, `dark_web`, `malicious_sites`, `socmed_impersonation`.\n\nPriorities: `High`, `Moderate`, `Informational`.\n\nStatuses: `New`, `InProgress`, `Dismissed`, `Resolved`.",
                       "instructions": [
                         {
                           "type": "Textbox",
@@ -835,7 +835,7 @@
                     },
                     {
                       "title": "3. Connect",
-                      "description": "Start polling Recorded Future every hour.",
+                      "description": "Make sure the `RecordedFuture-Playbook-Alert-Importer` Logic App is disabled first to avoid duplicate alerts. Then start polling Recorded Future every hour.",
                       "instructions": [
                         {
                           "type": "ConnectionToggleButton",
@@ -959,7 +959,7 @@
             "customs": [
               {
                 "name": "Recorded Future Data Connectors infrastructure",
-                "description": "The shared DCE `recorded-future-dce` and DCR `recorded-future-dcr-playbook-alerts` must exist in the workspace resource group. Deploy them with Step 1 of the **Recorded Future - Log Ingestion** connector."
+                "description": "The shared DCE `recorded-future-dce` and DCR `recorded-future-dcr-playbook-alerts` must exist, with exactly these names, in the same resource group as the workspace. The names are fixed and not configurable. Deploy them with Step 1 of the **Recorded Future - Log Ingestion** connector."
               },
               {
                 "name": "Recorded Future API Token",
@@ -974,7 +974,7 @@
             },
             {
               "title": "2. Configure",
-              "description": "Enter your Recorded Future API token. Filters are optional comma-separated lists; leave empty to import everything.\n\nCategories: `code_repo_leakage`, `domain_abuse`, `identity_novel_exposures`, `third_party_risk`, `cyber_vulnerability`, `dark_web`, `malicious_sites`, `socmed_impersonation`.\n\nPriorities: `High`, `Moderate`, `Informational`.\n\nStatuses: `New`, `InProgress`, `Dismissed`, `Resolved`.",
+              "description": "Enter your Recorded Future API token. Filters are optional comma-separated lists; leave empty to import everything. Values are case-sensitive and must match exactly, e.g. `High,Moderate`.\n\nCategories: `code_repo_leakage`, `domain_abuse`, `identity_novel_exposures`, `third_party_risk`, `cyber_vulnerability`, `dark_web`, `malicious_sites`, `socmed_impersonation`.\n\nPriorities: `High`, `Moderate`, `Informational`.\n\nStatuses: `New`, `InProgress`, `Dismissed`, `Resolved`.",
               "instructions": [
                 {
                   "type": "Textbox",
@@ -1019,7 +1019,7 @@
             },
             {
               "title": "3. Connect",
-              "description": "Start polling Recorded Future every hour.",
+              "description": "Make sure the `RecordedFuture-Playbook-Alert-Importer` Logic App is disabled first to avoid duplicate alerts. Then start polling Recorded Future every hour.",
               "instructions": [
                 {
                   "type": "ConnectionToggleButton",
@@ -1206,7 +1206,7 @@
                 "paging": {
                   "pagingType": "Offset",
                   "offsetParaName": "from",
-                  "pageSize": 100,
+                  "pageSize": 25,
                   "pageSizeParameterName": "limit"
                 }
               }
@@ -1231,7 +1231,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureThreatHuntingHashAllActors_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFutureThreatHuntingHashAllActors_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject1').analyticRuleVersion1]",
@@ -1368,7 +1368,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureThreatHuntingIPAllActors_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFutureThreatHuntingIPAllActors_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject2').analyticRuleVersion2]",
@@ -1499,7 +1499,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureThreatHuntingDomainAllActors_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFutureThreatHuntingDomainAllActors_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject3').analyticRuleVersion3]",
@@ -1630,7 +1630,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureThreatHuntingUrlAllActors_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFutureThreatHuntingUrlAllActors_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject4').analyticRuleVersion4]",
@@ -1759,7 +1759,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureSandboxStorageAccount_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFutureSandboxStorageAccount_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject5').analyticRuleVersion5]",
@@ -1879,7 +1879,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureSandboxEmailAttachment_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFutureSandboxEmailAttachment_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject6').analyticRuleVersion6]",
@@ -2010,7 +2010,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureAlerts_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFutureAlerts_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject7').analyticRuleVersion7]",
@@ -2122,7 +2122,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuturePlaybookAlerts_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFuturePlaybookAlerts_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject8').analyticRuleVersion8]",
@@ -2233,7 +2233,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-IOC_Enrichment Playbook with template version 3.2.23",
+        "description": "RecordedFuture-IOC_Enrichment Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion1')]",
@@ -2899,7 +2899,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-Playbook-Alert-Importer Playbook with template version 3.2.23",
+        "description": "RecordedFuture-Playbook-Alert-Importer Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion2')]",
@@ -3244,7 +3244,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-AlertImporter Playbook with template version 3.2.23",
+        "description": "RecordedFuture-AlertImporter Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion3')]",
@@ -3695,7 +3695,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-ThreatIntelligenceImport Playbook with template version 3.2.23",
+        "description": "RecordedFuture-ThreatIntelligenceImport Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion4')]",
@@ -3924,7 +3924,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-Domain-IndicatorImport Playbook with template version 3.2.23",
+        "description": "RecordedFuture-Domain-IndicatorImport Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion5')]",
@@ -4242,7 +4242,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-Hash-IndicatorImport Playbook with template version 3.2.23",
+        "description": "RecordedFuture-Hash-IndicatorImport Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion6')]",
@@ -4560,7 +4560,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-IP-IndicatorImport Playbook with template version 3.2.23",
+        "description": "RecordedFuture-IP-IndicatorImport Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion7')]",
@@ -4880,7 +4880,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-URL-IndicatorImport Playbook with template version 3.2.23",
+        "description": "RecordedFuture-URL-IndicatorImport Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion8')]",
@@ -5198,7 +5198,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-Sandbox_Enrichment-Url Playbook with template version 3.2.23",
+        "description": "RecordedFuture-Sandbox_Enrichment-Url Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion9')]",
@@ -5634,7 +5634,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-CustomConnector Playbook with template version 3.2.23",
+        "description": "RecordedFuture-CustomConnector Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion10')]",
@@ -8262,7 +8262,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-ThreatMap-Importer Playbook with template version 3.2.23",
+        "description": "RecordedFuture-ThreatMap-Importer Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion11')]",
@@ -8692,7 +8692,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-MalwareThreatMap-Importer Playbook with template version 3.2.23",
+        "description": "RecordedFuture-MalwareThreatMap-Importer Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion12')]",
@@ -9109,7 +9109,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "ActorThreatHunt-IndicatorImport Playbook with template version 3.2.23",
+        "description": "ActorThreatHunt-IndicatorImport Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion13')]",
@@ -9345,7 +9345,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "MalwareThreatHunt-IndicatorImport Playbook with template version 3.2.23",
+        "description": "MalwareThreatHunt-IndicatorImport Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion14')]",
@@ -9582,7 +9582,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuturePlaybookAlertOverview Workbook with template version 3.2.23",
+        "description": "RecordedFuturePlaybookAlertOverview Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion1')]",
@@ -9666,7 +9666,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureAlertOverview Workbook with template version 3.2.23",
+        "description": "RecordedFutureAlertOverview Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion2')]",
@@ -9750,7 +9750,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureDomainCorrelation Workbook with template version 3.2.23",
+        "description": "RecordedFutureDomainCorrelation Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion3')]",
@@ -9834,7 +9834,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureHashCorrelation Workbook with template version 3.2.23",
+        "description": "RecordedFutureHashCorrelation Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion4')]",
@@ -9918,7 +9918,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureIPCorrelation Workbook with template version 3.2.23",
+        "description": "RecordedFutureIPCorrelation Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion5')]",
@@ -10002,7 +10002,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureURLCorrelation Workbook with template version 3.2.23",
+        "description": "RecordedFutureURLCorrelation Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion6')]",
@@ -10086,7 +10086,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureThreatActorHunting Workbook with template version 3.2.23",
+        "description": "RecordedFutureThreatActorHunting Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion7')]",
@@ -10170,7 +10170,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureMalwareThreatHunting Workbook with template version 3.2.23",
+        "description": "RecordedFutureMalwareThreatHunting Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion8')]",
@@ -10250,7 +10250,7 @@
       "apiVersion": "2023-04-01-preview",
       "location": "[parameters('workspace-location')]",
       "properties": {
-        "version": "3.2.23",
+        "version": "3.2.24",
         "kind": "Solution",
         "contentSchemaVersion": "3.0.0",
         "displayName": "Recorded Future",
