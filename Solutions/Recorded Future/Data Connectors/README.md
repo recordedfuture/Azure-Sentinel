@@ -28,22 +28,29 @@ Codeless Connector Framework (CCF) connector, packaged by `Tools/Create-Azure-Se
 One **Recorded Future (via Codeless Connector Framework)** tile (`RecordedFutureCCF`) with an **Add connection**
 dialog (`DataConnectorsGrid`/`ContextPane`). Each connection picks one or more data types; today the only one is
 **Playbook Alerts**, which replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App.
-- `RecordedFuture_ConnectorDefinition.json`: the tile. The dialog has the API token, a `dataTypes` multi-select, and
-  optional multi-select filters for playbook alert categories, priorities and statuses (empty means all).
+- `RecordedFuture_ConnectorDefinition.json`: the tile. The dialog has a required connection name (`friendlyName`), the
+  API token, a `dataTypes` multi-select, and optional multi-select filters for playbook alert categories, priorities
+  and statuses (empty means all). The grid shows each connection's name, data types and filters (from
+  `addOnAttributes` and `request.queryParameters`); connections can only be deleted, not edited.
 - `RecordedFuture_PollerConfig.json`: one `RestApiPoller` per data type, gated by `condition`
   (`contains(parameters('dataTypes'), 'PlaybookAlerts')`). Playbook Alerts: `GET /gw/azure/playbook-alert/export`,
   `X-RFToken`, 60-minute window on `updated_from`/`updated_until`, offset paging `from`/`limit`=25.
   Multi-select values arrive as arrays and are sent as comma-separated strings (`join(parameters('x'), ',')`).
   To add a data type: add an option to `dataTypes`, a gated poller, and its stream/table to the DCR and table files.
-- Poller names: the packaging tool names each connection's poller `<name><newGuid()>` (36 chars), and
-  `Microsoft.SecurityInsights/dataConnectors` names are limited to 64, so a poller `name` must be at most 28 chars
-  (`RecordedFuturePBAPoller` = 23). A longer name fails at **Connect** with "name must be between 1 and 64 characters".
+- Poller names: `RecordedFuturePBA` + `uniqueString(parameters('friendlyName'))` (17 + 13 = 30 chars; the
+  `Microsoft.SecurityInsights/dataConnectors` limit is 64), as Trend Micro CAS does. The packaging tool passes a name
+  that starts with `[[concat` through unchanged, so no `newGuid()` is appended. Re-adding a connection with the same
+  name therefore replaces it instead of creating a duplicate.
 - Permissions (shown on the tile as prerequisites):
   - Install the solution (deploys the DCR and the table): **Contributor**, or **Monitoring Contributor** +
     **Log Analytics Contributor**, on the workspace's resource group.
   - **Add connection** → Connect (deploys only a `Microsoft.SecurityInsights/dataConnectors` `RestApiPoller`; no DCR,
     table or role assignment): **Microsoft Sentinel Contributor** on the workspace's resource group
     (workspace read/write/delete).
+  - The tile also lists `resourceProvider` entries for `Microsoft.Insights/dataCollectionRules` (ResourceGroup,
+    read/write) and `Microsoft.SecurityInsights/dataConnectors` (Workspace, read/write/delete). These providers are
+    new ground for a CCF tile (other solutions mostly list only the workspace); verify in the portal that the
+    prerequisites render and evaluate as expected.
 - `RecordedFuture_DCR.json`, `table_RecordedFuturePlaybookAlerts_V2_CL.json`: DCR and table installed with the
   connector. The stream declaration, `transformKql` and table schema are copied from `azuredeploy.json`; keep them
   in sync (a Content Hub install re-PUTs the table, so a column missing here would be removed).

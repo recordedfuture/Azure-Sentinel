@@ -25,6 +25,13 @@
                 "description": "Existing data collection endpoint in this resource group that the test DCR uses."
             }
         },
+        "friendlyName": {
+            "type": "string",
+            "defaultValue": "Playbook alerts",
+            "metadata": {
+                "description": "Connection name. Re-deploying with the same name replaces that connection."
+            }
+        },
         "apiKey": {
             "type": "securestring",
             "metadata": {
@@ -254,6 +261,10 @@
                         {
                             "description": "Latest state of each playbook alert",
                             "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(updated_date, *) by id"
+                        },
+                        {
+                            "description": "Playbook alerts without duplicates (one row per alert update)",
+                            "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(TimeGenerated, *) by id, updated_date"
                         }
                     ],
                     "dataTypes": [
@@ -283,12 +294,37 @@
                                     "read": true,
                                     "delete": true
                                 }
+                            },
+                            {
+                                "provider": "Microsoft.Insights/dataCollectionRules",
+                                "permissionsDisplayText": "Read and Write permissions on the data collection rule are required.",
+                                "providerDisplayName": "Data collection rules",
+                                "scope": "ResourceGroup",
+                                "requiredPermissions": {
+                                    "read": true,
+                                    "write": true
+                                }
+                            },
+                            {
+                                "provider": "Microsoft.SecurityInsights/dataConnectors",
+                                "permissionsDisplayText": "Read, Write and Delete permissions on Microsoft Sentinel data connectors are required.",
+                                "providerDisplayName": "Microsoft Sentinel data connectors",
+                                "scope": "Workspace",
+                                "requiredPermissions": {
+                                    "read": true,
+                                    "write": true,
+                                    "delete": true
+                                }
                             }
                         ],
                         "customs": [
                             {
                                 "name": "Recorded Future API Token",
                                 "description": "A Recorded Future API token with access to the selected data types (e.g. Playbook Alerts)."
+                            },
+                            {
+                                "name": "Azure roles",
+                                "description": "E.g. **Microsoft Sentinel Contributor** on the workspace's resource group to add connections; installing the solution also creates the data collection rule `RecordedFutureCCFDCR` and the table `RecordedFuturePlaybookAlerts_V2_CL` (**Contributor**, or **Monitoring Contributor** and **Log Analytics Contributor**). No role assignments are created."
                             }
                         ]
                     },
@@ -299,19 +335,31 @@
                         },
                         {
                             "title": "2. Add a connection",
-                            "description": "Select **Add connection**, enter your Recorded Future API token, pick the data types and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
+                            "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick the data types and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
                             "instructions": [
                                 {
                                     "type": "DataConnectorsGrid",
                                     "parameters": {
                                         "mapping": [
                                             {
+                                                "columnName": "Name",
+                                                "columnValue": "properties.addOnAttributes.friendlyName"
+                                            },
+                                            {
                                                 "columnName": "Data types",
                                                 "columnValue": "properties.addOnAttributes.dataTypes"
                                             },
                                             {
-                                                "columnName": "Endpoint",
-                                                "columnValue": "properties.request.apiEndpoint"
+                                                "columnName": "Categories",
+                                                "columnValue": "properties.request.queryParameters.categories"
+                                            },
+                                            {
+                                                "columnName": "Priorities",
+                                                "columnValue": "properties.request.queryParameters.priorities"
+                                            },
+                                            {
+                                                "columnName": "Statuses",
+                                                "columnValue": "properties.request.queryParameters.statuses"
                                             }
                                         ],
                                         "menuItems": [
@@ -326,9 +374,30 @@
                                         "title": "Add Recorded Future connection",
                                         "subtitle": "Import Recorded Future data",
                                         "contextPaneType": "DataConnectorsContextPane",
+                                        "isPrimary": true,
                                         "instructionSteps": [
                                             {
                                                 "instructions": [
+                                                    {
+                                                        "type": "Textbox",
+                                                        "parameters": {
+                                                            "label": "Connection name",
+                                                            "placeholder": "e.g. All playbook alerts",
+                                                            "type": "text",
+                                                            "name": "friendlyName",
+                                                            "validations": {
+                                                                "required": true
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        "type": "InfoMessage",
+                                                        "parameters": {
+                                                            "text": "Re-adding a connection with the same name replaces it (settings can't be edited in place). Connections with overlapping filters ingest the same alerts twice; one connection is usually enough. Empty filters = all.",
+                                                            "visible": true,
+                                                            "inline": true
+                                                        }
+                                                    },
                                                     {
                                                         "type": "Markdown",
                                                         "parameters": {
@@ -511,7 +580,7 @@
             }
         },
         {
-            "name": "[concat(parameters('workspace'), '/Microsoft.SecurityInsights/RecordedFuturePlaybookAlertsPoller')]",
+            "name": "[concat(parameters('workspace'), '/Microsoft.SecurityInsights/RecordedFuturePBA', uniqueString(parameters('friendlyName')))]",
             "apiVersion": "2023-02-01-preview",
             "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
             "location": "[parameters('location')]",
@@ -562,6 +631,7 @@
                     "pageSizeParameterName": "limit"
                 },
                 "addOnAttributes": {
+                    "friendlyName": "[parameters('friendlyName')]",
                     "dataTypes": "PlaybookAlerts"
                 }
             },

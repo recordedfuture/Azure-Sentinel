@@ -756,6 +756,10 @@
                     {
                       "description": "Latest state of each playbook alert",
                       "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(updated_date, *) by id"
+                    },
+                    {
+                      "description": "Playbook alerts without duplicates (one row per alert update)",
+                      "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(TimeGenerated, *) by id, updated_date"
                     }
                   ],
                   "dataTypes": [
@@ -785,6 +789,27 @@
                           "read": true,
                           "delete": true
                         }
+                      },
+                      {
+                        "provider": "Microsoft.Insights/dataCollectionRules",
+                        "permissionsDisplayText": "Read and Write permissions on the data collection rule are required.",
+                        "providerDisplayName": "Data collection rules",
+                        "scope": "ResourceGroup",
+                        "requiredPermissions": {
+                          "read": true,
+                          "write": true
+                        }
+                      },
+                      {
+                        "provider": "Microsoft.SecurityInsights/dataConnectors",
+                        "permissionsDisplayText": "Read, Write and Delete permissions on Microsoft Sentinel data connectors are required.",
+                        "providerDisplayName": "Microsoft Sentinel data connectors",
+                        "scope": "Workspace",
+                        "requiredPermissions": {
+                          "read": true,
+                          "write": true,
+                          "delete": true
+                        }
                       }
                     ],
                     "customs": [
@@ -794,7 +819,7 @@
                       },
                       {
                         "name": "Azure roles",
-                        "description": "**Install** the solution (data collection rule `RecordedFutureCCFDCR` and table `RecordedFuturePlaybookAlerts_V2_CL`): **Contributor**, or **Monitoring Contributor** and **Log Analytics Contributor**, on the workspace's resource group. **Add connection** (creates a Microsoft Sentinel data connector in the workspace): **Microsoft Sentinel Contributor** on the workspace's resource group. No role assignments are created."
+                        "description": "E.g. **Microsoft Sentinel Contributor** on the workspace's resource group to add connections; installing the solution also creates the data collection rule `RecordedFutureCCFDCR` and the table `RecordedFuturePlaybookAlerts_V2_CL` (**Contributor**, or **Monitoring Contributor** and **Log Analytics Contributor**). No role assignments are created."
                       }
                     ]
                   },
@@ -805,19 +830,31 @@
                     },
                     {
                       "title": "2. Add a connection",
-                      "description": "Select **Add connection**, enter your Recorded Future API token, pick the data types and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
+                      "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick the data types and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
                       "instructions": [
                         {
                           "type": "DataConnectorsGrid",
                           "parameters": {
                             "mapping": [
                               {
+                                "columnName": "Name",
+                                "columnValue": "properties.addOnAttributes.friendlyName"
+                              },
+                              {
                                 "columnName": "Data types",
                                 "columnValue": "properties.addOnAttributes.dataTypes"
                               },
                               {
-                                "columnName": "Endpoint",
-                                "columnValue": "properties.request.apiEndpoint"
+                                "columnName": "Categories",
+                                "columnValue": "properties.request.queryParameters.categories"
+                              },
+                              {
+                                "columnName": "Priorities",
+                                "columnValue": "properties.request.queryParameters.priorities"
+                              },
+                              {
+                                "columnName": "Statuses",
+                                "columnValue": "properties.request.queryParameters.statuses"
                               }
                             ],
                             "menuItems": [
@@ -832,9 +869,30 @@
                             "title": "Add Recorded Future connection",
                             "subtitle": "Import Recorded Future data",
                             "contextPaneType": "DataConnectorsContextPane",
+                            "isPrimary": true,
                             "instructionSteps": [
                               {
                                 "instructions": [
+                                  {
+                                    "type": "Textbox",
+                                    "parameters": {
+                                      "label": "Connection name",
+                                      "placeholder": "e.g. All playbook alerts",
+                                      "type": "text",
+                                      "name": "friendlyName",
+                                      "validations": {
+                                        "required": true
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "InfoMessage",
+                                    "parameters": {
+                                      "text": "Re-adding a connection with the same name replaces it (settings can't be edited in place). Connections with overlapping filters ingest the same alerts twice; one connection is usually enough. Empty filters = all.",
+                                      "visible": true,
+                                      "inline": true
+                                    }
+                                  },
                                   {
                                     "type": "Markdown",
                                     "parameters": {
@@ -1254,6 +1312,10 @@
             {
               "description": "Latest state of each playbook alert",
               "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(updated_date, *) by id"
+            },
+            {
+              "description": "Playbook alerts without duplicates (one row per alert update)",
+              "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(TimeGenerated, *) by id, updated_date"
             }
           ],
           "dataTypes": [
@@ -1283,6 +1345,27 @@
                   "read": true,
                   "delete": true
                 }
+              },
+              {
+                "provider": "Microsoft.Insights/dataCollectionRules",
+                "permissionsDisplayText": "Read and Write permissions on the data collection rule are required.",
+                "providerDisplayName": "Data collection rules",
+                "scope": "ResourceGroup",
+                "requiredPermissions": {
+                  "read": true,
+                  "write": true
+                }
+              },
+              {
+                "provider": "Microsoft.SecurityInsights/dataConnectors",
+                "permissionsDisplayText": "Read, Write and Delete permissions on Microsoft Sentinel data connectors are required.",
+                "providerDisplayName": "Microsoft Sentinel data connectors",
+                "scope": "Workspace",
+                "requiredPermissions": {
+                  "read": true,
+                  "write": true,
+                  "delete": true
+                }
               }
             ],
             "customs": [
@@ -1292,7 +1375,7 @@
               },
               {
                 "name": "Azure roles",
-                "description": "**Install** the solution (data collection rule `RecordedFutureCCFDCR` and table `RecordedFuturePlaybookAlerts_V2_CL`): **Contributor**, or **Monitoring Contributor** and **Log Analytics Contributor**, on the workspace's resource group. **Add connection** (creates a Microsoft Sentinel data connector in the workspace): **Microsoft Sentinel Contributor** on the workspace's resource group. No role assignments are created."
+                "description": "E.g. **Microsoft Sentinel Contributor** on the workspace's resource group to add connections; installing the solution also creates the data collection rule `RecordedFutureCCFDCR` and the table `RecordedFuturePlaybookAlerts_V2_CL` (**Contributor**, or **Monitoring Contributor** and **Log Analytics Contributor**). No role assignments are created."
               }
             ]
           },
@@ -1303,19 +1386,31 @@
             },
             {
               "title": "2. Add a connection",
-              "description": "Select **Add connection**, enter your Recorded Future API token, pick the data types and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
+              "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick the data types and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
               "instructions": [
                 {
                   "type": "DataConnectorsGrid",
                   "parameters": {
                     "mapping": [
                       {
+                        "columnName": "Name",
+                        "columnValue": "properties.addOnAttributes.friendlyName"
+                      },
+                      {
                         "columnName": "Data types",
                         "columnValue": "properties.addOnAttributes.dataTypes"
                       },
                       {
-                        "columnName": "Endpoint",
-                        "columnValue": "properties.request.apiEndpoint"
+                        "columnName": "Categories",
+                        "columnValue": "properties.request.queryParameters.categories"
+                      },
+                      {
+                        "columnName": "Priorities",
+                        "columnValue": "properties.request.queryParameters.priorities"
+                      },
+                      {
+                        "columnName": "Statuses",
+                        "columnValue": "properties.request.queryParameters.statuses"
                       }
                     ],
                     "menuItems": [
@@ -1330,9 +1425,30 @@
                     "title": "Add Recorded Future connection",
                     "subtitle": "Import Recorded Future data",
                     "contextPaneType": "DataConnectorsContextPane",
+                    "isPrimary": true,
                     "instructionSteps": [
                       {
                         "instructions": [
+                          {
+                            "type": "Textbox",
+                            "parameters": {
+                              "label": "Connection name",
+                              "placeholder": "e.g. All playbook alerts",
+                              "type": "text",
+                              "name": "friendlyName",
+                              "validations": {
+                                "required": true
+                              }
+                            }
+                          },
+                          {
+                            "type": "InfoMessage",
+                            "parameters": {
+                              "text": "Re-adding a connection with the same name replaces it (settings can't be edited in place). Connections with overlapping filters ingest the same alerts twice; one connection is usually enough. Empty filters = all.",
+                              "visible": true,
+                              "inline": true
+                            }
+                          },
                           {
                             "type": "Markdown",
                             "parameters": {
@@ -1589,6 +1705,11 @@
               },
               "type": "object"
             },
+            "friendlyName": {
+              "defaultValue": "friendlyName",
+              "type": "securestring",
+              "minLength": 1
+            },
             "apiKey": {
               "defaultValue": "apiKey",
               "type": "securestring",
@@ -1642,7 +1763,7 @@
               }
             },
             {
-              "name": "[[concat(parameters('innerWorkspace'),'/Microsoft.SecurityInsights/', 'RecordedFuturePBAPoller', parameters('guidValue'))]",
+              "name": "[[concat(parameters('innerWorkspace'),'/Microsoft.SecurityInsights/', 'RecordedFuturePBA', uniqueString(parameters('friendlyName')))]",
               "apiVersion": "2023-02-01-preview",
               "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
               "location": "[parameters('workspace-location')]",
@@ -1693,6 +1814,7 @@
                   "pageSizeParameterName": "limit"
                 },
                 "addOnAttributes": {
+                  "friendlyName": "[[parameters('friendlyName')]",
                   "dataTypes": "[[join(parameters('dataTypes'), ',')]"
                 }
               },
@@ -1746,10 +1868,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI",
                     "dataTypes": [
                       "ThreatIntelIndicators"
-                    ]
+                    ],
+                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI"
                   }
                 ],
                 "tactics": [
@@ -1764,7 +1886,6 @@
                 ],
                 "entityMappings": [
                   {
-                    "entityType": "FileHash",
                     "fieldMappings": [
                       {
                         "identifier": "Value",
@@ -1774,7 +1895,8 @@
                         "identifier": "Algorithm",
                         "columnName": "HashType"
                       }
-                    ]
+                    ],
+                    "entityType": "FileHash"
                   }
                 ],
                 "eventGroupingSettings": {
@@ -1784,21 +1906,21 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
-                  "alertDisplayNameFormat": "{{Description}}",
                   "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Hash}} from the {{Type}} table.\\n",
                   "alertDynamicProperties": [
                     {
                       "alertProperty": "AlertLink",
                       "value": "RecordedFuturePortalLink"
                     }
-                  ]
+                  ],
+                  "alertDisplayNameFormat": "{{Description}}"
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
+                    "enabled": true,
                     "matchingMethod": "AllEntities",
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
-                    "enabled": true
+                    "reopenClosedIncident": false
                   },
                   "createIncident": true
                 }
@@ -1883,10 +2005,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI",
                     "dataTypes": [
                       "ThreatIntelIndicators"
-                    ]
+                    ],
+                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI"
                   }
                 ],
                 "tactics": [
@@ -1899,13 +2021,13 @@
                 ],
                 "entityMappings": [
                   {
-                    "entityType": "IP",
                     "fieldMappings": [
                       {
                         "identifier": "Address",
                         "columnName": "NetworkIP"
                       }
-                    ]
+                    ],
+                    "entityType": "IP"
                   }
                 ],
                 "eventGroupingSettings": {
@@ -1915,21 +2037,21 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
-                  "alertDisplayNameFormat": "{{Description}}",
                   "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{NetworkIP}} from the {{Type}} table.\\n",
                   "alertDynamicProperties": [
                     {
                       "alertProperty": "AlertLink",
                       "value": "RecordedFuturePortalLink"
                     }
-                  ]
+                  ],
+                  "alertDisplayNameFormat": "{{Description}}"
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
+                    "enabled": true,
                     "matchingMethod": "AllEntities",
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
-                    "enabled": true
+                    "reopenClosedIncident": false
                   },
                   "createIncident": true
                 }
@@ -2014,10 +2136,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI",
                     "dataTypes": [
                       "ThreatIntelIndicators"
-                    ]
+                    ],
+                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI"
                   }
                 ],
                 "tactics": [
@@ -2030,13 +2152,13 @@
                 ],
                 "entityMappings": [
                   {
-                    "entityType": "DNS",
                     "fieldMappings": [
                       {
                         "identifier": "DomainName",
                         "columnName": "Domain"
                       }
-                    ]
+                    ],
+                    "entityType": "DNS"
                   }
                 ],
                 "eventGroupingSettings": {
@@ -2046,21 +2168,21 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
-                  "alertDisplayNameFormat": "{{Description}}",
                   "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Domain}} from the {{Type}} table.\\n",
                   "alertDynamicProperties": [
                     {
                       "alertProperty": "AlertLink",
                       "value": "RecordedFuturePortalLink"
                     }
-                  ]
+                  ],
+                  "alertDisplayNameFormat": "{{Description}}"
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
+                    "enabled": true,
                     "matchingMethod": "AllEntities",
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
-                    "enabled": true
+                    "reopenClosedIncident": false
                   },
                   "createIncident": true
                 }
@@ -2145,10 +2267,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI",
                     "dataTypes": [
                       "ThreatIntelIndicators"
-                    ]
+                    ],
+                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI"
                   }
                 ],
                 "tactics": [
@@ -2162,34 +2284,34 @@
                 ],
                 "entityMappings": [
                   {
-                    "entityType": "URL",
                     "fieldMappings": [
                       {
                         "identifier": "Url",
                         "columnName": "Url"
                       }
-                    ]
+                    ],
+                    "entityType": "URL"
                   }
                 ],
                 "customDetails": {
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
-                  "alertDisplayNameFormat": "{{Description}}",
                   "alertDescriptionFormat": "*{{Description}}**\\n\\nCorrelation found on {{Url}} from the {{Type}} table.\\n",
                   "alertDynamicProperties": [
                     {
                       "alertProperty": "AlertLink",
                       "value": "RecordedFuturePortalLink"
                     }
-                  ]
+                  ],
+                  "alertDisplayNameFormat": "{{Description}}"
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
+                    "enabled": true,
                     "matchingMethod": "AllEntities",
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
-                    "enabled": true
+                    "reopenClosedIncident": false
                   },
                   "createIncident": true
                 }
@@ -2270,32 +2392,32 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "RecordedFuture",
                     "dataTypes": [
                       "RecordedFutureSandboxResults_V2_CL"
-                    ]
+                    ],
+                    "connectorId": "RecordedFuture"
                   }
                 ],
                 "entityMappings": [
                   {
-                    "entityType": "File",
                     "fieldMappings": [
                       {
                         "identifier": "Name",
                         "columnName": "FileName"
                       }
-                    ]
+                    ],
+                    "entityType": "File"
                   }
                 ],
                 "eventGroupingSettings": {
                   "aggregationKind": "AlertPerResult"
                 },
                 "customDetails": {
-                  "SandboxVerdict": "SandboxVerdict",
-                  "SandboxScore": "SandboxScore",
-                  "SampleId": "SampleId",
                   "FileName": "FileName",
-                  "Source": "Source"
+                  "SandboxScore": "SandboxScore",
+                  "Source": "Source",
+                  "SampleId": "SampleId",
+                  "SandboxVerdict": "SandboxVerdict"
                 },
                 "alertDetailsOverride": {
                   "alertDisplayNameFormat": "Malicious File in Storage: {{FileName}}",
@@ -2303,13 +2425,13 @@
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
-                    "matchingMethod": "Selected",
-                    "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
                     "enabled": true,
+                    "matchingMethod": "Selected",
                     "groupByCustomDetails": [
                       "SandboxVerdict"
-                    ]
+                    ],
+                    "lookbackDuration": "1h",
+                    "reopenClosedIncident": false
                   },
                   "createIncident": true
                 }
@@ -2390,43 +2512,43 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "RecordedFuture",
                     "dataTypes": [
                       "RecordedFutureSandboxResults_V2_CL"
-                    ]
+                    ],
+                    "connectorId": "RecordedFuture"
                   }
                 ],
                 "entityMappings": [
                   {
-                    "entityType": "File",
                     "fieldMappings": [
                       {
                         "identifier": "Name",
                         "columnName": "FileName"
                       }
-                    ]
+                    ],
+                    "entityType": "File"
                   },
                   {
-                    "entityType": "Mailbox",
                     "fieldMappings": [
                       {
                         "identifier": "MailboxPrimaryAddress",
                         "columnName": "EmailFrom"
                       }
-                    ]
+                    ],
+                    "entityType": "Mailbox"
                   }
                 ],
                 "eventGroupingSettings": {
                   "aggregationKind": "AlertPerResult"
                 },
                 "customDetails": {
-                  "EmailTo": "EmailTo",
-                  "SampleId": "SampleId",
                   "SandboxScore": "SandboxScore",
-                  "SandboxVerdict": "SandboxVerdict",
-                  "EmailFrom": "EmailFrom",
+                  "EmailTo": "EmailTo",
+                  "FileName": "FileName",
                   "Source": "Source",
-                  "FileName": "FileName"
+                  "SampleId": "SampleId",
+                  "SandboxVerdict": "SandboxVerdict",
+                  "EmailFrom": "EmailFrom"
                 },
                 "alertDetailsOverride": {
                   "alertDisplayNameFormat": "Malicious Email Attachment: {{FileName}} from {{EmailFrom}}",
@@ -2434,13 +2556,13 @@
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
-                    "matchingMethod": "Selected",
-                    "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
                     "enabled": true,
+                    "matchingMethod": "Selected",
                     "groupByCustomDetails": [
                       "EmailFrom"
-                    ]
+                    ],
+                    "lookbackDuration": "1h",
+                    "reopenClosedIncident": false
                   },
                   "createIncident": true
                 }
@@ -2521,10 +2643,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "RecordedFuture",
                     "dataTypes": [
                       "RecordedFutureClassicAlerts_V2_CL"
-                    ]
+                    ],
+                    "connectorId": "RecordedFuture"
                   }
                 ],
                 "eventGroupingSettings": {
@@ -2535,24 +2657,24 @@
                   "RuleName": "RuleName"
                 },
                 "alertDetailsOverride": {
-                  "alertDisplayNameFormat": "Alert: {{AlertName}}",
                   "alertDescriptionFormat": "_Recorded Future Alert_\n\nAlertID:\n{{AlertID}}\n\nTriggered: {{Triggered}}\n\nAI Summary: {{AISummary}}\n",
                   "alertDynamicProperties": [
                     {
                       "alertProperty": "AlertLink",
                       "value": "URL"
                     }
-                  ]
+                  ],
+                  "alertDisplayNameFormat": "Alert: {{AlertName}}"
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
-                    "matchingMethod": "Selected",
-                    "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
                     "enabled": true,
+                    "matchingMethod": "Selected",
                     "groupByCustomDetails": [
                       "RuleId"
-                    ]
+                    ],
+                    "lookbackDuration": "1h",
+                    "reopenClosedIncident": false
                   },
                   "createIncident": true
                 }
@@ -2633,10 +2755,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "RecordedFuture",
                     "dataTypes": [
                       "RecordedFuturePlaybookAlerts_V2_CL"
-                    ]
+                    ],
+                    "connectorId": "RecordedFuture"
                   }
                 ],
                 "eventGroupingSettings": {
@@ -2646,24 +2768,24 @@
                   "Category": "category"
                 },
                 "alertDetailsOverride": {
-                  "alertDisplayNameFormat": "Alert: {{rule_label}}  - {{alert_title}}",
                   "alertDescriptionFormat": "_Recorded Future Alert_\n\nEvidence Summary:\n{{alert_description}}\n\nPriority: {{priority}}\n\nRecorded Future Playbook Alert ID\n{{id}}\n",
                   "alertDynamicProperties": [
                     {
                       "alertProperty": "AlertLink",
                       "value": "link"
                     }
-                  ]
+                  ],
+                  "alertDisplayNameFormat": "Alert: {{rule_label}}  - {{alert_title}}"
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
-                    "matchingMethod": "Selected",
-                    "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
                     "enabled": true,
+                    "matchingMethod": "Selected",
                     "groupByCustomDetails": [
                       "Category"
-                    ]
+                    ],
+                    "lookbackDuration": "1h",
+                    "reopenClosedIncident": false
                   },
                   "createIncident": true
                 }

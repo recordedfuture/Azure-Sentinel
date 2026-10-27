@@ -1,6 +1,6 @@
 [
     {
-        "name": "RecordedFuturePBAPoller",
+        "name": "[[concat(parameters('innerWorkspace'),'/Microsoft.SecurityInsights/', 'RecordedFuturePBA', uniqueString(parameters('friendlyName')))]",
         "apiVersion": "2022-12-01-preview",
         "type": "Microsoft.SecurityInsights/dataConnectors",
         "location": "{{location}}",
@@ -51,6 +51,7 @@
                 "pageSizeParameterName": "limit"
             },
             "addOnAttributes": {
+                "friendlyName": "[[parameters('friendlyName')]",
                 "dataTypes": "[[join(parameters('dataTypes'), ',')]"
             }
         },

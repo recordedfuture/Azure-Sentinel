@@ -48,7 +48,7 @@ Playbook Alerts can also be imported without a Logic App, using the **Recorded F
 To switch:
 1. **Disable** the `RecordedFuture-Playbook-Alert-Importer` Logic App (Logic App > Overview > Disable). If both run, every alert is imported twice.
 2. In Microsoft Sentinel, open **Data connectors** > **Recorded Future (via Codeless Connector Framework)** and select **Add connection**.
-3. Enter your API token, select the **Playbook Alerts** data type, optionally pick categories, priorities and statuses (empty imports all), and select **Connect**.
+3. Enter a connection name and your API token, select the **Playbook Alerts** data type, optionally pick categories, priorities and statuses (empty imports all), and select **Connect**.
 4. When new alerts arrive in `RecordedFuturePlaybookAlerts_V2_CL`, delete the Logic App.
 
 The connector only imports alerts updated after it was connected. Alerts imported earlier by the Logic App stay in the table.
