@@ -294,27 +294,6 @@
                                     "read": true,
                                     "delete": true
                                 }
-                            },
-                            {
-                                "provider": "Microsoft.Insights/dataCollectionRules",
-                                "permissionsDisplayText": "Read and Write permissions on the data collection rule are required.",
-                                "providerDisplayName": "Data collection rules",
-                                "scope": "ResourceGroup",
-                                "requiredPermissions": {
-                                    "read": true,
-                                    "write": true
-                                }
-                            },
-                            {
-                                "provider": "Microsoft.SecurityInsights/dataConnectors",
-                                "permissionsDisplayText": "Read, Write and Delete permissions on Microsoft Sentinel data connectors are required.",
-                                "providerDisplayName": "Microsoft Sentinel data connectors",
-                                "scope": "Workspace",
-                                "requiredPermissions": {
-                                    "read": true,
-                                    "write": true,
-                                    "delete": true
-                                }
                             }
                         ],
                         "customs": [
@@ -324,7 +303,7 @@
                             },
                             {
                                 "name": "Azure roles",
-                                "description": "E.g. **Microsoft Sentinel Contributor** on the workspace's resource group to add connections; installing the solution also creates the data collection rule `RecordedFutureCCFDCR` and the table `RecordedFuturePlaybookAlerts_V2_CL` (**Contributor**, or **Monitoring Contributor** and **Log Analytics Contributor**). No role assignments are created."
+                                "description": "**Install** the solution (data collection rule `RecordedFutureCCFDCR` and table `RecordedFuturePlaybookAlerts_V2_CL`): **Contributor**, or **Monitoring Contributor** and **Log Analytics Contributor**, on the workspace's resource group. **Add connection**, then **Connect** (creates a Microsoft Sentinel data connector in the workspace): **Microsoft Sentinel Contributor** on the workspace. No role assignments are created."
                             }
                         ]
                     },

@@ -45,12 +45,15 @@ dialog (`DataConnectorsGrid`/`ContextPane`). Each connection picks one or more d
   - Install the solution (deploys the DCR and the table): **Contributor**, or **Monitoring Contributor** +
     **Log Analytics Contributor**, on the workspace's resource group.
   - **Add connection** → Connect (deploys only a `Microsoft.SecurityInsights/dataConnectors` `RestApiPoller`; no DCR,
-    table or role assignment): **Microsoft Sentinel Contributor** on the workspace's resource group
+    table or role assignment): **Microsoft Sentinel Contributor** on the workspace
     (workspace read/write/delete).
-  - The tile also lists `resourceProvider` entries for `Microsoft.Insights/dataCollectionRules` (ResourceGroup,
-    read/write) and `Microsoft.SecurityInsights/dataConnectors` (Workspace, read/write/delete). These providers are
-    new ground for a CCF tile (other solutions mostly list only the workspace); verify in the portal that the
-    prerequisites render and evaluate as expected.
+  - The tile's `permissions.resourceProvider` list only lists `Microsoft.OperationalInsights/workspaces`. Deploying
+    the connector definition rejects any other provider; the API error lists the only accepted values:
+    `Microsoft.OperationalInsights/solutions`, `Microsoft.OperationalInsights/workspaces`,
+    `Microsoft.OperationalInsights/workspaces/datasources`, `microsoft.aadiam/diagnosticSettings`,
+    `Microsoft.OperationalInsights/workspaces/sharedKeys` and `Microsoft.Authorization/policyAssignments`. The DCR
+    (`Microsoft.Insights/dataCollectionRules`) and data connector (`Microsoft.SecurityInsights/dataConnectors`)
+    permissions can therefore only be shown as text, in the "Azure roles" custom prerequisite.
 - `RecordedFuture_DCR.json`, `table_RecordedFuturePlaybookAlerts_V2_CL.json`: DCR and table installed with the
   connector. The stream declaration, `transformKql` and table schema are copied from `azuredeploy.json`; keep them
   in sync (a Content Hub install re-PUTs the table, so a column missing here would be removed).
