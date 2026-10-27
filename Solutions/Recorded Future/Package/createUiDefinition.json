@@ -67,11 +67,11 @@
             "name": "dataconnectors2-text",
             "type": "Microsoft.Common.TextBlock",
             "options": {
-              "text": "This Solution installs the Recorded Future - Playbook Alerts (Codeless Connector) data connector. After installing the solution, configure and enable this data connector by following guidance in Manage solution view."
+              "text": "This Solution installs the data connector for Recorded Future (via Codeless Connector Framework). You can get Recorded Future (via Codeless Connector Framework) data in your Microsoft Sentinel workspace. After installing the solution, configure and enable this data connector by following guidance in Manage solution view."
             }
           },
           {
-            "name": "dataconnectors-link1",
+            "name": "dataconnectors-link2",
             "type": "Microsoft.Common.TextBlock",
             "options": {
               "link": {

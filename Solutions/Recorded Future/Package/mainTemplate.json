@@ -28,6 +28,20 @@
         "description": "Workspace name for Log Analytics where Microsoft Sentinel is setup"
       }
     },
+    "resourceGroupName": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().name]",
+      "metadata": {
+        "description": "resource group name where Microsoft Sentinel is setup"
+      }
+    },
+    "subscription": {
+      "type": "string",
+      "defaultValue": "[last(split(subscription().id, '/'))]",
+      "metadata": {
+        "description": "subscription id where Microsoft Sentinel is setup"
+      }
+    },
     "workbook1-name": {
       "type": "string",
       "defaultValue": "Recorded Future - Playbook Alerts Overview",
@@ -102,8 +116,6 @@
     "_solutionId": "[variables('solutionId')]",
     "uiConfigId1": "RecordedFuture",
     "_uiConfigId1": "[variables('uiConfigId1')]",
-    "uiConfigId2": "RecordedFuturePlaybookAlertsCCF",
-    "_uiConfigId2": "[variables('uiConfigId2')]",
     "dataConnectorContentId1": "RecordedFuture",
     "_dataConnectorContentId1": "[variables('dataConnectorContentId1')]",
     "dataConnectorId1": "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/dataConnectors', variables('_dataConnectorContentId1'))]",
@@ -111,6 +123,14 @@
     "dataConnectorTemplateSpecName1": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat(parameters('workspace'),'-dc-',uniquestring(variables('_dataConnectorContentId1'))))]",
     "dataConnectorVersion1": "1.0.0",
     "_dataConnectorcontentProductId1": "[concat(take(variables('_solutionId'),50),'-','dc','-', uniqueString(concat(variables('_solutionId'),'-','DataConnector','-',variables('_dataConnectorContentId1'),'-', variables('dataConnectorVersion1'))))]",
+    "workspaceResourceId": "[resourceId('microsoft.OperationalInsights/Workspaces', parameters('workspace'))]",
+    "dataConnectorCCPVersion": "3.2.24",
+    "_dataConnectorContentIdConnectorDefinition2": "RecordedFutureCCF",
+    "dataConnectorTemplateNameConnectorDefinition2": "[concat(parameters('workspace'),'-dc-',uniquestring(variables('_dataConnectorContentIdConnectorDefinition2')))]",
+    "_dataConnectorContentIdConnections2": "RecordedFutureCCFConnections",
+    "dataConnectorTemplateNameConnections2": "[concat(parameters('workspace'),'-dc-',uniquestring(variables('_dataConnectorContentIdConnections2')))]",
+    "dataCollectionEndpointId2": "[concat('/subscriptions/',parameters('subscription'),'/resourceGroups/',parameters('resourceGroupName'),'/providers/Microsoft.Insights/dataCollectionEndpoints/',parameters('workspace'))]",
+    "blanks": "[replace('b', 'b', '')]",
     "analyticRuleObject1": {
       "analyticRuleVersion1": "1.1.1",
       "_analyticRulecontentId1": "6db6a8e6-2959-440b-ba57-a505875fcb37",
@@ -174,7 +194,6 @@
     "_playbookContentId1": "[variables('playbookContentId1')]",
     "playbookId1": "[resourceId('Microsoft.Logic/workflows', variables('playbookContentId1'))]",
     "playbookTemplateSpecName1": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat(parameters('workspace'),'-pl-',uniquestring(variables('_playbookContentId1'))))]",
-    "workspaceResourceId": "[resourceId('microsoft.OperationalInsights/Workspaces', parameters('workspace'))]",
     "_playbookcontentProductId1": "[concat(take(variables('_solutionId'),50),'-','pl','-', uniqueString(concat(variables('_solutionId'),'-','Playbook','-',variables('_playbookContentId1'),'-', variables('playbookVersion1'))))]",
     "RecordedFuture-Playbook-Alert-Importer": "RecordedFuture-Playbook-Alert-Importer",
     "_RecordedFuture-Playbook-Alert-Importer": "[variables('RecordedFuture-Playbook-Alert-Importer')]",
@@ -243,7 +262,6 @@
     "_playbookcontentProductId9": "[concat(take(variables('_solutionId'),50),'-','pl','-', uniqueString(concat(variables('_solutionId'),'-','Playbook','-',variables('_playbookContentId9'),'-', variables('playbookVersion9'))))]",
     "RecordedFuture-CustomConnector": "RecordedFuture-CustomConnector",
     "_RecordedFuture-CustomConnector": "[variables('RecordedFuture-CustomConnector')]",
-    "blanks": "[replace('b', 'b', '')]",
     "playbookVersion10": "1.0",
     "playbookContentId10": "RecordedFuture-CustomConnector",
     "_playbookContentId10": "[variables('playbookContentId10')]",
@@ -329,11 +347,6 @@
     "workbookTemplateSpecName8": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat(parameters('workspace'),'-wb-',uniquestring(variables('_workbookContentId8'))))]",
     "_workbookContentId8": "[variables('workbookContentId8')]",
     "_workbookcontentProductId8": "[concat(take(variables('_solutionId'),50),'-','wb','-', uniqueString(concat(variables('_solutionId'),'-','Workbook','-',variables('_workbookContentId8'),'-', variables('workbookVersion8'))))]",
-    "dataConnectorCCPVersion": "1.0.0",
-    "_dataConnectorContentIdConnectorDefinition2": "RecordedFuturePlaybookAlertsCCF",
-    "dataConnectorTemplateNameConnectorDefinition2": "[concat(parameters('workspace'),'-dc-',uniquestring(variables('_dataConnectorContentIdConnectorDefinition2')))]",
-    "_dataConnectorContentIdConnections2": "RecordedFuturePlaybookAlertsCCFConnections",
-    "dataConnectorTemplateNameConnections2": "[concat(parameters('workspace'),'-dc-',uniquestring(variables('_dataConnectorContentIdConnections2')))]",
     "_solutioncontentProductId": "[concat(take(variables('_solutionId'),50),'-','sl','-', uniqueString(concat(variables('_solutionId'),'-','Solution','-',variables('_solutionId'),'-', variables('_solutionVersion'))))]"
   },
   "resources": [
@@ -707,7 +720,7 @@
       ],
       "properties": {
         "contentId": "[variables('_dataConnectorContentIdConnectorDefinition2')]",
-        "displayName": "Recorded Future - Playbook Alerts (Codeless Connector)",
+        "displayName": "Recorded Future (via Codeless Connector Framework)",
         "contentKind": "DataConnector",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -723,10 +736,10 @@
               "kind": "Customizable",
               "properties": {
                 "connectorUiConfig": {
-                  "id": "[variables('_uiConfigId2')]",
-                  "title": "Recorded Future - Playbook Alerts (Codeless Connector)",
+                  "id": "RecordedFutureCCF",
+                  "title": "Recorded Future (via Codeless Connector Framework)",
                   "publisher": "Recorded Future",
-                  "descriptionMarkdown": "Imports [Recorded Future Playbook Alerts](https://support.recordedfuture.com/hc/en-us/articles/13152506878739-Playbook-Alerting-Rules) into the `RecordedFuturePlaybookAlerts_V2_CL` table using the Microsoft Sentinel Codeless Connector Framework (CCF). Replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App. Requires the Recorded Future Data Connectors infrastructure (DCE, DCRs and tables) to be deployed in the workspace resource group first (see the **Recorded Future - Log Ingestion** connector).",
+                  "descriptionMarkdown": "Imports [Recorded Future](https://www.recordedfuture.com/) data into Microsoft Sentinel using the Codeless Connector Framework (CCF). Pick the data types to import when adding a connection.\n\n**Playbook Alerts**: imports [Recorded Future Playbook Alerts](https://support.recordedfuture.com/hc/en-us/articles/13152506878739-Playbook-Alerting-Rules) hourly into the `RecordedFuturePlaybookAlerts_V2_CL` table, optionally filtered by category, priority and status. Replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App.",
                   "graphQueriesTableName": "RecordedFuturePlaybookAlerts_V2_CL",
                   "graphQueries": [
                     {
@@ -776,75 +789,221 @@
                     ],
                     "customs": [
                       {
-                        "name": "Recorded Future Data Connectors infrastructure",
-                        "description": "The shared DCE `recorded-future-dce` and DCR `recorded-future-dcr-playbook-alerts` must exist, with exactly these names, in the same resource group as the workspace. The names are fixed and not configurable. Deploy them with Step 1 of the **Recorded Future - Log Ingestion** connector."
-                      },
-                      {
                         "name": "Recorded Future API Token",
-                        "description": "A Recorded Future API token with access to Playbook Alerts."
+                        "description": "A Recorded Future API token with access to the selected data types (e.g. Playbook Alerts)."
                       }
                     ]
                   },
                   "instructionSteps": [
                     {
                       "title": "1. Disable the Logic App importer",
-                      "description": "If the `RecordedFuture-Playbook-Alert-Importer` Logic App is running, disable it before connecting, otherwise alerts are imported twice."
+                      "description": "If the `RecordedFuture-Playbook-Alert-Importer` Logic App is running, disable it before adding a Playbook Alerts connection, otherwise alerts are imported twice."
                     },
                     {
-                      "title": "2. Configure",
-                      "description": "Enter your Recorded Future API token. Filters are optional comma-separated lists; leave empty to import everything. Values are case-sensitive and must match exactly, e.g. `High,Moderate`.\n\nCategories: `code_repo_leakage`, `domain_abuse`, `identity_novel_exposures`, `third_party_risk`, `cyber_vulnerability`, `dark_web`, `malicious_sites`, `socmed_impersonation`.\n\nPriorities: `High`, `Moderate`, `Informational`.\n\nStatuses: `New`, `InProgress`, `Dismissed`, `Resolved`.",
+                      "title": "2. Add a connection",
+                      "description": "Select **Add connection**, enter your Recorded Future API token, pick the data types and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
                       "instructions": [
                         {
-                          "type": "Textbox",
+                          "type": "DataConnectorsGrid",
                           "parameters": {
-                            "label": "API Token",
-                            "placeholder": "Recorded Future API token",
-                            "type": "password",
-                            "name": "apiKey",
-                            "validations": {
-                              "required": true
-                            }
+                            "mapping": [
+                              {
+                                "columnName": "Data types",
+                                "columnValue": "properties.addOnAttributes.dataTypes"
+                              },
+                              {
+                                "columnName": "Endpoint",
+                                "columnValue": "properties.request.apiEndpoint"
+                              }
+                            ],
+                            "menuItems": [
+                              "DeleteConnector"
+                            ]
                           }
                         },
                         {
-                          "type": "Textbox",
+                          "type": "ContextPane",
                           "parameters": {
-                            "label": "Categories (optional)",
-                            "placeholder": "e.g. domain_abuse,cyber_vulnerability",
-                            "type": "text",
-                            "name": "categories"
-                          }
-                        },
-                        {
-                          "type": "Textbox",
-                          "parameters": {
-                            "label": "Priorities (optional)",
-                            "placeholder": "e.g. High,Moderate",
-                            "type": "text",
-                            "name": "priorities"
-                          }
-                        },
-                        {
-                          "type": "Textbox",
-                          "parameters": {
-                            "label": "Statuses (optional)",
-                            "placeholder": "e.g. New,InProgress",
-                            "type": "text",
-                            "name": "statuses"
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "title": "3. Connect",
-                      "description": "Make sure the `RecordedFuture-Playbook-Alert-Importer` Logic App is disabled first to avoid duplicate alerts. Then start polling Recorded Future every hour.",
-                      "instructions": [
-                        {
-                          "type": "ConnectionToggleButton",
-                          "parameters": {
-                            "connectLabel": "Connect",
-                            "disconnectLabel": "Disconnect",
-                            "name": "toggle"
+                            "label": "Add connection",
+                            "title": "Add Recorded Future connection",
+                            "subtitle": "Import Recorded Future data",
+                            "contextPaneType": "DataConnectorsContextPane",
+                            "instructionSteps": [
+                              {
+                                "instructions": [
+                                  {
+                                    "type": "Markdown",
+                                    "parameters": {
+                                      "content": "## Recorded Future API\n\nEnter your Recorded Future API token."
+                                    }
+                                  },
+                                  {
+                                    "type": "Textbox",
+                                    "parameters": {
+                                      "label": "API Token",
+                                      "placeholder": "Recorded Future API token",
+                                      "type": "password",
+                                      "name": "apiKey",
+                                      "validations": {
+                                        "required": true
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "Markdown",
+                                    "parameters": {
+                                      "content": "## Data types\n\nChoose which Recorded Future data to import with this connection."
+                                    }
+                                  },
+                                  {
+                                    "type": "Dropdown",
+                                    "parameters": {
+                                      "label": "Data types",
+                                      "name": "dataTypes",
+                                      "options": [
+                                        {
+                                          "key": "PlaybookAlerts",
+                                          "text": "Playbook Alerts (RecordedFuturePlaybookAlerts_V2_CL)"
+                                        }
+                                      ],
+                                      "placeholder": "Select data types",
+                                      "isMultiSelect": true,
+                                      "required": true,
+                                      "defaultAllSelected": true
+                                    }
+                                  },
+                                  {
+                                    "type": "Markdown",
+                                    "parameters": {
+                                      "content": "## Playbook Alerts filters\n\nOptional. Leave a filter empty to import all values."
+                                    }
+                                  },
+                                  {
+                                    "type": "Dropdown",
+                                    "parameters": {
+                                      "label": "Categories (optional)",
+                                      "name": "categories",
+                                      "options": [
+                                        {
+                                          "key": "code_repo_leakage",
+                                          "text": "code_repo_leakage"
+                                        },
+                                        {
+                                          "key": "cyber_vulnerability",
+                                          "text": "cyber_vulnerability"
+                                        },
+                                        {
+                                          "key": "dark_web",
+                                          "text": "dark_web"
+                                        },
+                                        {
+                                          "key": "domain_abuse",
+                                          "text": "domain_abuse"
+                                        },
+                                        {
+                                          "key": "identity_novel_exposures",
+                                          "text": "identity_novel_exposures"
+                                        },
+                                        {
+                                          "key": "malicious_sites",
+                                          "text": "malicious_sites"
+                                        },
+                                        {
+                                          "key": "socmed_impersonation",
+                                          "text": "socmed_impersonation"
+                                        },
+                                        {
+                                          "key": "third_party_risk",
+                                          "text": "third_party_risk"
+                                        }
+                                      ],
+                                      "placeholder": "All categories",
+                                      "isMultiSelect": true,
+                                      "required": false,
+                                      "defaultAllSelected": false
+                                    }
+                                  },
+                                  {
+                                    "type": "InfoMessage",
+                                    "parameters": {
+                                      "text": "Playbook alert categories to import. Empty imports all categories.",
+                                      "visible": true,
+                                      "inline": true
+                                    }
+                                  },
+                                  {
+                                    "type": "Dropdown",
+                                    "parameters": {
+                                      "label": "Priorities (optional)",
+                                      "name": "priorities",
+                                      "options": [
+                                        {
+                                          "key": "High",
+                                          "text": "High"
+                                        },
+                                        {
+                                          "key": "Moderate",
+                                          "text": "Moderate"
+                                        },
+                                        {
+                                          "key": "Informational",
+                                          "text": "Informational"
+                                        }
+                                      ],
+                                      "placeholder": "All priorities",
+                                      "isMultiSelect": true,
+                                      "required": false,
+                                      "defaultAllSelected": false
+                                    }
+                                  },
+                                  {
+                                    "type": "InfoMessage",
+                                    "parameters": {
+                                      "text": "Playbook alert priorities to import. Empty imports all priorities.",
+                                      "visible": true,
+                                      "inline": true
+                                    }
+                                  },
+                                  {
+                                    "type": "Dropdown",
+                                    "parameters": {
+                                      "label": "Statuses (optional)",
+                                      "name": "statuses",
+                                      "options": [
+                                        {
+                                          "key": "New",
+                                          "text": "New"
+                                        },
+                                        {
+                                          "key": "InProgress",
+                                          "text": "In Progress"
+                                        },
+                                        {
+                                          "key": "Dismissed",
+                                          "text": "Dismissed"
+                                        },
+                                        {
+                                          "key": "Resolved",
+                                          "text": "Resolved"
+                                        }
+                                      ],
+                                      "placeholder": "All statuses",
+                                      "isMultiSelect": true,
+                                      "required": false,
+                                      "defaultAllSelected": false
+                                    }
+                                  },
+                                  {
+                                    "type": "InfoMessage",
+                                    "parameters": {
+                                      "text": "Playbook alert statuses to import. Empty imports all statuses.",
+                                      "visible": true,
+                                      "inline": true
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
                           }
                         }
                       ]
@@ -872,10 +1031,10 @@
                   "email": "[variables('_email')]"
                 },
                 "support": {
-                  "name": "Recorded Future Premier Integrations",
+                  "name": "Recorded Future Support Team",
                   "email": "support@recordedfuture.com",
                   "tier": "Partner",
-                  "link": "https://support.recordedfuture.com/"
+                  "link": "http://support.recordedfuture.com/"
                 },
                 "dependencies": {
                   "criteria": [
@@ -887,16 +1046,180 @@
                   ]
                 }
               }
+            },
+            {
+              "name": "recorded-future-dcr-playbook-alerts-ccf",
+              "apiVersion": "2022-06-01",
+              "type": "Microsoft.Insights/dataCollectionRules",
+              "location": "[parameters('workspace-location')]",
+              "kind": "[variables('blanks')]",
+              "properties": {
+                "dataCollectionEndpointId": "[variables('dataCollectionEndpointId2')]",
+                "streamDeclarations": {
+                  "Custom-RecordedFuturePlaybookAlerts_V2_CL": {
+                    "columns": [
+                      {
+                        "name": "TimeGenerated",
+                        "type": "datetime"
+                      },
+                      {
+                        "name": "alert_title",
+                        "type": "string"
+                      },
+                      {
+                        "name": "id",
+                        "type": "string"
+                      },
+                      {
+                        "name": "category",
+                        "type": "string"
+                      },
+                      {
+                        "name": "rule_label",
+                        "type": "string"
+                      },
+                      {
+                        "name": "status",
+                        "type": "string"
+                      },
+                      {
+                        "name": "priority",
+                        "type": "string"
+                      },
+                      {
+                        "name": "created_date",
+                        "type": "datetime"
+                      },
+                      {
+                        "name": "updated_date",
+                        "type": "datetime"
+                      },
+                      {
+                        "name": "targets",
+                        "type": "string"
+                      },
+                      {
+                        "name": "evidence_summary",
+                        "type": "string"
+                      },
+                      {
+                        "name": "alert_description",
+                        "type": "string"
+                      },
+                      {
+                        "name": "link",
+                        "type": "string"
+                      },
+                      {
+                        "name": "owner_organisation_details",
+                        "type": "dynamic"
+                      }
+                    ]
+                  }
+                },
+                "destinations": {
+                  "logAnalytics": [
+                    {
+                      "workspaceResourceId": "[variables('workspaceResourceId')]",
+                      "name": "workspace"
+                    }
+                  ]
+                },
+                "dataFlows": [
+                  {
+                    "streams": [
+                      "Custom-RecordedFuturePlaybookAlerts_V2_CL"
+                    ],
+                    "destinations": [
+                      "workspace"
+                    ],
+                    "transformKql": "source | project TimeGenerated = datetime(null), alert_title = tostring(alert_title), id = tostring(id), category = tostring(category), rule_label = tostring(rule_label), status = tostring(status), priority = tostring(priority), created_date = todatetime(created_date), updated_date = todatetime(updated_date), targets = tostring(targets), evidence_summary = tostring(evidence_summary), alert_description = tostring(alert_description), link = tostring(link), owner_organisation_details = todynamic(tostring(owner_organisation_details))",
+                    "outputStream": "Custom-RecordedFuturePlaybookAlerts_V2_CL"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "RecordedFuturePlaybookAlerts_V2_CL",
+              "apiVersion": "2022-10-01",
+              "type": "Microsoft.OperationalInsights/workspaces/tables",
+              "location": "[parameters('workspace-location')]",
+              "kind": null,
+              "properties": {
+                "schema": {
+                  "name": "RecordedFuturePlaybookAlerts_V2_CL",
+                  "columns": [
+                    {
+                      "name": "TimeGenerated",
+                      "type": "datetime"
+                    },
+                    {
+                      "name": "alert_title",
+                      "type": "string"
+                    },
+                    {
+                      "name": "id",
+                      "type": "string"
+                    },
+                    {
+                      "name": "category",
+                      "type": "string"
+                    },
+                    {
+                      "name": "rule_label",
+                      "type": "string"
+                    },
+                    {
+                      "name": "status",
+                      "type": "string"
+                    },
+                    {
+                      "name": "priority",
+                      "type": "string"
+                    },
+                    {
+                      "name": "created_date",
+                      "type": "datetime"
+                    },
+                    {
+                      "name": "updated_date",
+                      "type": "datetime"
+                    },
+                    {
+                      "name": "targets",
+                      "type": "string"
+                    },
+                    {
+                      "name": "evidence_summary",
+                      "type": "string"
+                    },
+                    {
+                      "name": "alert_description",
+                      "type": "string"
+                    },
+                    {
+                      "name": "link",
+                      "type": "string"
+                    },
+                    {
+                      "name": "owner_organisation_details",
+                      "type": "dynamic"
+                    }
+                  ]
+                },
+                "retentionInDays": 90,
+                "plan": "Analytics"
+              }
             }
           ]
         },
         "packageKind": "Solution",
         "packageVersion": "[variables('_solutionVersion')]",
         "packageName": "[variables('_solutionName')]",
+        "contentProductId": "[concat(take(variables('_solutionId'), 50),'-','dc','-', uniqueString(concat(variables('_solutionId'),'-','DataConnector','-',variables('_dataConnectorContentIdConnectorDefinition2'),'-', variables('dataConnectorCCPVersion'))))]",
         "packageId": "[variables('_solutionId')]",
         "contentSchemaVersion": "3.0.0",
-        "version": "[variables('dataConnectorCCPVersion')]",
-        "contentProductId": "[concat(take(variables('_solutionId'), 50),'-','dc','-', uniqueString(concat(variables('_solutionId'),'-','DataConnector','-',variables('_dataConnectorContentIdConnectorDefinition2'),'-', variables('dataConnectorCCPVersion'))))]"
+        "version": "[variables('dataConnectorCCPVersion')]"
       }
     },
     {
@@ -907,10 +1230,10 @@
       "kind": "Customizable",
       "properties": {
         "connectorUiConfig": {
-          "id": "[variables('_uiConfigId2')]",
-          "title": "Recorded Future - Playbook Alerts (Codeless Connector)",
+          "id": "RecordedFutureCCF",
+          "title": "Recorded Future (via Codeless Connector Framework)",
           "publisher": "Recorded Future",
-          "descriptionMarkdown": "Imports [Recorded Future Playbook Alerts](https://support.recordedfuture.com/hc/en-us/articles/13152506878739-Playbook-Alerting-Rules) into the `RecordedFuturePlaybookAlerts_V2_CL` table using the Microsoft Sentinel Codeless Connector Framework (CCF). Replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App. Requires the Recorded Future Data Connectors infrastructure (DCE, DCRs and tables) to be deployed in the workspace resource group first (see the **Recorded Future - Log Ingestion** connector).",
+          "descriptionMarkdown": "Imports [Recorded Future](https://www.recordedfuture.com/) data into Microsoft Sentinel using the Codeless Connector Framework (CCF). Pick the data types to import when adding a connection.\n\n**Playbook Alerts**: imports [Recorded Future Playbook Alerts](https://support.recordedfuture.com/hc/en-us/articles/13152506878739-Playbook-Alerting-Rules) hourly into the `RecordedFuturePlaybookAlerts_V2_CL` table, optionally filtered by category, priority and status. Replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App.",
           "graphQueriesTableName": "RecordedFuturePlaybookAlerts_V2_CL",
           "graphQueries": [
             {
@@ -960,75 +1283,221 @@
             ],
             "customs": [
               {
-                "name": "Recorded Future Data Connectors infrastructure",
-                "description": "The shared DCE `recorded-future-dce` and DCR `recorded-future-dcr-playbook-alerts` must exist, with exactly these names, in the same resource group as the workspace. The names are fixed and not configurable. Deploy them with Step 1 of the **Recorded Future - Log Ingestion** connector."
-              },
-              {
                 "name": "Recorded Future API Token",
-                "description": "A Recorded Future API token with access to Playbook Alerts."
+                "description": "A Recorded Future API token with access to the selected data types (e.g. Playbook Alerts)."
               }
             ]
           },
           "instructionSteps": [
             {
               "title": "1. Disable the Logic App importer",
-              "description": "If the `RecordedFuture-Playbook-Alert-Importer` Logic App is running, disable it before connecting, otherwise alerts are imported twice."
+              "description": "If the `RecordedFuture-Playbook-Alert-Importer` Logic App is running, disable it before adding a Playbook Alerts connection, otherwise alerts are imported twice."
             },
             {
-              "title": "2. Configure",
-              "description": "Enter your Recorded Future API token. Filters are optional comma-separated lists; leave empty to import everything. Values are case-sensitive and must match exactly, e.g. `High,Moderate`.\n\nCategories: `code_repo_leakage`, `domain_abuse`, `identity_novel_exposures`, `third_party_risk`, `cyber_vulnerability`, `dark_web`, `malicious_sites`, `socmed_impersonation`.\n\nPriorities: `High`, `Moderate`, `Informational`.\n\nStatuses: `New`, `InProgress`, `Dismissed`, `Resolved`.",
+              "title": "2. Add a connection",
+              "description": "Select **Add connection**, enter your Recorded Future API token, pick the data types and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
               "instructions": [
                 {
-                  "type": "Textbox",
+                  "type": "DataConnectorsGrid",
                   "parameters": {
-                    "label": "API Token",
-                    "placeholder": "Recorded Future API token",
-                    "type": "password",
-                    "name": "apiKey",
-                    "validations": {
-                      "required": true
-                    }
+                    "mapping": [
+                      {
+                        "columnName": "Data types",
+                        "columnValue": "properties.addOnAttributes.dataTypes"
+                      },
+                      {
+                        "columnName": "Endpoint",
+                        "columnValue": "properties.request.apiEndpoint"
+                      }
+                    ],
+                    "menuItems": [
+                      "DeleteConnector"
+                    ]
                   }
                 },
                 {
-                  "type": "Textbox",
+                  "type": "ContextPane",
                   "parameters": {
-                    "label": "Categories (optional)",
-                    "placeholder": "e.g. domain_abuse,cyber_vulnerability",
-                    "type": "text",
-                    "name": "categories"
-                  }
-                },
-                {
-                  "type": "Textbox",
-                  "parameters": {
-                    "label": "Priorities (optional)",
-                    "placeholder": "e.g. High,Moderate",
-                    "type": "text",
-                    "name": "priorities"
-                  }
-                },
-                {
-                  "type": "Textbox",
-                  "parameters": {
-                    "label": "Statuses (optional)",
-                    "placeholder": "e.g. New,InProgress",
-                    "type": "text",
-                    "name": "statuses"
-                  }
-                }
-              ]
-            },
-            {
-              "title": "3. Connect",
-              "description": "Make sure the `RecordedFuture-Playbook-Alert-Importer` Logic App is disabled first to avoid duplicate alerts. Then start polling Recorded Future every hour.",
-              "instructions": [
-                {
-                  "type": "ConnectionToggleButton",
-                  "parameters": {
-                    "connectLabel": "Connect",
-                    "disconnectLabel": "Disconnect",
-                    "name": "toggle"
+                    "label": "Add connection",
+                    "title": "Add Recorded Future connection",
+                    "subtitle": "Import Recorded Future data",
+                    "contextPaneType": "DataConnectorsContextPane",
+                    "instructionSteps": [
+                      {
+                        "instructions": [
+                          {
+                            "type": "Markdown",
+                            "parameters": {
+                              "content": "## Recorded Future API\n\nEnter your Recorded Future API token."
+                            }
+                          },
+                          {
+                            "type": "Textbox",
+                            "parameters": {
+                              "label": "API Token",
+                              "placeholder": "Recorded Future API token",
+                              "type": "password",
+                              "name": "apiKey",
+                              "validations": {
+                                "required": true
+                              }
+                            }
+                          },
+                          {
+                            "type": "Markdown",
+                            "parameters": {
+                              "content": "## Data types\n\nChoose which Recorded Future data to import with this connection."
+                            }
+                          },
+                          {
+                            "type": "Dropdown",
+                            "parameters": {
+                              "label": "Data types",
+                              "name": "dataTypes",
+                              "options": [
+                                {
+                                  "key": "PlaybookAlerts",
+                                  "text": "Playbook Alerts (RecordedFuturePlaybookAlerts_V2_CL)"
+                                }
+                              ],
+                              "placeholder": "Select data types",
+                              "isMultiSelect": true,
+                              "required": true,
+                              "defaultAllSelected": true
+                            }
+                          },
+                          {
+                            "type": "Markdown",
+                            "parameters": {
+                              "content": "## Playbook Alerts filters\n\nOptional. Leave a filter empty to import all values."
+                            }
+                          },
+                          {
+                            "type": "Dropdown",
+                            "parameters": {
+                              "label": "Categories (optional)",
+                              "name": "categories",
+                              "options": [
+                                {
+                                  "key": "code_repo_leakage",
+                                  "text": "code_repo_leakage"
+                                },
+                                {
+                                  "key": "cyber_vulnerability",
+                                  "text": "cyber_vulnerability"
+                                },
+                                {
+                                  "key": "dark_web",
+                                  "text": "dark_web"
+                                },
+                                {
+                                  "key": "domain_abuse",
+                                  "text": "domain_abuse"
+                                },
+                                {
+                                  "key": "identity_novel_exposures",
+                                  "text": "identity_novel_exposures"
+                                },
+                                {
+                                  "key": "malicious_sites",
+                                  "text": "malicious_sites"
+                                },
+                                {
+                                  "key": "socmed_impersonation",
+                                  "text": "socmed_impersonation"
+                                },
+                                {
+                                  "key": "third_party_risk",
+                                  "text": "third_party_risk"
+                                }
+                              ],
+                              "placeholder": "All categories",
+                              "isMultiSelect": true,
+                              "required": false,
+                              "defaultAllSelected": false
+                            }
+                          },
+                          {
+                            "type": "InfoMessage",
+                            "parameters": {
+                              "text": "Playbook alert categories to import. Empty imports all categories.",
+                              "visible": true,
+                              "inline": true
+                            }
+                          },
+                          {
+                            "type": "Dropdown",
+                            "parameters": {
+                              "label": "Priorities (optional)",
+                              "name": "priorities",
+                              "options": [
+                                {
+                                  "key": "High",
+                                  "text": "High"
+                                },
+                                {
+                                  "key": "Moderate",
+                                  "text": "Moderate"
+                                },
+                                {
+                                  "key": "Informational",
+                                  "text": "Informational"
+                                }
+                              ],
+                              "placeholder": "All priorities",
+                              "isMultiSelect": true,
+                              "required": false,
+                              "defaultAllSelected": false
+                            }
+                          },
+                          {
+                            "type": "InfoMessage",
+                            "parameters": {
+                              "text": "Playbook alert priorities to import. Empty imports all priorities.",
+                              "visible": true,
+                              "inline": true
+                            }
+                          },
+                          {
+                            "type": "Dropdown",
+                            "parameters": {
+                              "label": "Statuses (optional)",
+                              "name": "statuses",
+                              "options": [
+                                {
+                                  "key": "New",
+                                  "text": "New"
+                                },
+                                {
+                                  "key": "InProgress",
+                                  "text": "In Progress"
+                                },
+                                {
+                                  "key": "Dismissed",
+                                  "text": "Dismissed"
+                                },
+                                {
+                                  "key": "Resolved",
+                                  "text": "Resolved"
+                                }
+                              ],
+                              "placeholder": "All statuses",
+                              "isMultiSelect": true,
+                              "required": false,
+                              "defaultAllSelected": false
+                            }
+                          },
+                          {
+                            "type": "InfoMessage",
+                            "parameters": {
+                              "text": "Playbook alert statuses to import. Empty imports all statuses.",
+                              "visible": true,
+                              "inline": true
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   }
                 }
               ]
@@ -1056,10 +1525,10 @@
           "email": "[variables('_email')]"
         },
         "support": {
-          "name": "Recorded Future Premier Integrations",
+          "name": "Recorded Future Support Team",
           "email": "support@recordedfuture.com",
           "tier": "Partner",
-          "link": "https://support.recordedfuture.com/"
+          "link": "http://support.recordedfuture.com/"
         },
         "dependencies": {
           "criteria": [
@@ -1082,7 +1551,7 @@
       ],
       "properties": {
         "contentId": "[variables('_dataConnectorContentIdConnections2')]",
-        "displayName": "Recorded Future - Playbook Alerts (Codeless Connector)",
+        "displayName": "Recorded Future (via Codeless Connector Framework)",
         "contentKind": "ResourcesDataConnector",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -1097,7 +1566,7 @@
               "type": "securestring"
             },
             "connectorDefinitionName": {
-              "defaultValue": "Recorded Future - Playbook Alerts (Codeless Connector)",
+              "defaultValue": "Recorded Future (via Codeless Connector Framework)",
               "type": "securestring",
               "minLength": 1
             },
@@ -1117,17 +1586,21 @@
               "type": "securestring",
               "minLength": 1
             },
+            "dataTypes": {
+              "defaultValue": "dataTypes",
+              "type": "array"
+            },
             "categories": {
-              "defaultValue": "",
-              "type": "string"
+              "defaultValue": "categories",
+              "type": "array"
             },
             "priorities": {
-              "defaultValue": "",
-              "type": "string"
+              "defaultValue": "priorities",
+              "type": "array"
             },
             "statuses": {
-              "defaultValue": "",
-              "type": "string"
+              "defaultValue": "statuses",
+              "type": "array"
             }
           },
           "variables": {
@@ -1153,10 +1626,10 @@
                   "email": "[variables('_email')]"
                 },
                 "support": {
-                  "name": "Recorded Future Premier Integrations",
+                  "name": "Recorded Future Support Team",
                   "email": "support@recordedfuture.com",
                   "tier": "Partner",
-                  "link": "https://support.recordedfuture.com/"
+                  "link": "http://support.recordedfuture.com/"
                 }
               }
             },
@@ -1167,12 +1640,12 @@
               "location": "[parameters('workspace-location')]",
               "kind": "RestApiPoller",
               "properties": {
-                "connectorDefinitionName": "RecordedFuturePlaybookAlertsCCF",
+                "connectorDefinitionName": "RecordedFutureCCF",
                 "dataType": "RecordedFuturePlaybookAlerts_V2_CL",
                 "dcrConfig": {
                   "streamName": "Custom-RecordedFuturePlaybookAlerts_V2_CL",
-                  "dataCollectionEndpoint": "[[reference(resourceId('Microsoft.Insights/dataCollectionEndpoints', 'recorded-future-dce'), '2024-03-11').logsIngestion.endpoint]",
-                  "dataCollectionRuleImmutableId": "[[reference(resourceId('Microsoft.Insights/dataCollectionRules', 'recorded-future-dcr-playbook-alerts'), '2024-03-11').immutableId]"
+                  "dataCollectionEndpoint": "[[parameters('dcrConfig').dataCollectionEndpoint]",
+                  "dataCollectionRuleImmutableId": "[[parameters('dcrConfig').dataCollectionRuleImmutableId]"
                 },
                 "auth": {
                   "type": "APIKey",
@@ -1194,9 +1667,9 @@
                     "User-Agent": "RecordedFuture-Sentinel-CCF"
                   },
                   "queryParameters": {
-                    "categories": "[[parameters('categories')]",
-                    "priorities": "[[parameters('priorities')]",
-                    "statuses": "[[parameters('statuses')]"
+                    "categories": "[[join(parameters('categories'), ',')]",
+                    "priorities": "[[join(parameters('priorities'), ',')]",
+                    "statuses": "[[join(parameters('statuses'), ',')]"
                   }
                 },
                 "response": {
@@ -1210,18 +1683,22 @@
                   "offsetParaName": "from",
                   "pageSize": 25,
                   "pageSizeParameterName": "limit"
+                },
+                "addOnAttributes": {
+                  "dataTypes": "[[join(parameters('dataTypes'), ',')]"
                 }
-              }
+              },
+              "condition": "[[contains(parameters('dataTypes'), 'PlaybookAlerts')]"
             }
           ]
         },
         "packageKind": "Solution",
         "packageVersion": "[variables('_solutionVersion')]",
         "packageName": "[variables('_solutionName')]",
+        "contentProductId": "[concat(take(variables('_solutionId'), 50),'-','rdc','-', uniqueString(concat(variables('_solutionId'),'-','ResourcesDataConnector','-',variables('_dataConnectorContentIdConnections2'),'-', variables('dataConnectorCCPVersion'))))]",
         "packageId": "[variables('_solutionId')]",
         "contentSchemaVersion": "3.0.0",
-        "version": "[variables('dataConnectorCCPVersion')]",
-        "contentProductId": "[concat(take(variables('_solutionId'), 50),'-','rdc','-', uniqueString(concat(variables('_solutionId'),'-','ResourcesDataConnector','-',variables('_dataConnectorContentIdConnections2'),'-', variables('dataConnectorCCPVersion'))))]"
+        "version": "[variables('dataConnectorCCPVersion')]"
       }
     },
     {
@@ -1279,6 +1756,7 @@
                 ],
                 "entityMappings": [
                   {
+                    "entityType": "FileHash",
                     "fieldMappings": [
                       {
                         "columnName": "Hash",
@@ -1288,8 +1766,7 @@
                         "columnName": "HashType",
                         "identifier": "Algorithm"
                       }
-                    ],
-                    "entityType": "FileHash"
+                    ]
                   }
                 ],
                 "eventGroupingSettings": {
@@ -1299,14 +1776,14 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Hash}} from the {{Type}} table.\\n",
                   "alertDisplayNameFormat": "{{Description}}",
                   "alertDynamicProperties": [
                     {
-                      "alertProperty": "AlertLink",
-                      "value": "RecordedFuturePortalLink"
+                      "value": "RecordedFuturePortalLink",
+                      "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Hash}} from the {{Type}} table.\\n"
+                  ]
                 },
                 "incidentConfiguration": {
                   "createIncident": true,
@@ -1414,13 +1891,13 @@
                 ],
                 "entityMappings": [
                   {
+                    "entityType": "IP",
                     "fieldMappings": [
                       {
                         "columnName": "NetworkIP",
                         "identifier": "Address"
                       }
-                    ],
-                    "entityType": "IP"
+                    ]
                   }
                 ],
                 "eventGroupingSettings": {
@@ -1430,14 +1907,14 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{NetworkIP}} from the {{Type}} table.\\n",
                   "alertDisplayNameFormat": "{{Description}}",
                   "alertDynamicProperties": [
                     {
-                      "alertProperty": "AlertLink",
-                      "value": "RecordedFuturePortalLink"
+                      "value": "RecordedFuturePortalLink",
+                      "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{NetworkIP}} from the {{Type}} table.\\n"
+                  ]
                 },
                 "incidentConfiguration": {
                   "createIncident": true,
@@ -1545,13 +2022,13 @@
                 ],
                 "entityMappings": [
                   {
+                    "entityType": "DNS",
                     "fieldMappings": [
                       {
                         "columnName": "Domain",
                         "identifier": "DomainName"
                       }
-                    ],
-                    "entityType": "DNS"
+                    ]
                   }
                 ],
                 "eventGroupingSettings": {
@@ -1561,14 +2038,14 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Domain}} from the {{Type}} table.\\n",
                   "alertDisplayNameFormat": "{{Description}}",
                   "alertDynamicProperties": [
                     {
-                      "alertProperty": "AlertLink",
-                      "value": "RecordedFuturePortalLink"
+                      "value": "RecordedFuturePortalLink",
+                      "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Domain}} from the {{Type}} table.\\n"
+                  ]
                 },
                 "incidentConfiguration": {
                   "createIncident": true,
@@ -1677,27 +2154,27 @@
                 ],
                 "entityMappings": [
                   {
+                    "entityType": "URL",
                     "fieldMappings": [
                       {
                         "columnName": "Url",
                         "identifier": "Url"
                       }
-                    ],
-                    "entityType": "URL"
+                    ]
                   }
                 ],
                 "customDetails": {
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "*{{Description}}**\\n\\nCorrelation found on {{Url}} from the {{Type}} table.\\n",
                   "alertDisplayNameFormat": "{{Description}}",
                   "alertDynamicProperties": [
                     {
-                      "alertProperty": "AlertLink",
-                      "value": "RecordedFuturePortalLink"
+                      "value": "RecordedFuturePortalLink",
+                      "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDescriptionFormat": "*{{Description}}**\\n\\nCorrelation found on {{Url}} from the {{Type}} table.\\n"
+                  ]
                 },
                 "incidentConfiguration": {
                   "createIncident": true,
@@ -1793,13 +2270,13 @@
                 ],
                 "entityMappings": [
                   {
+                    "entityType": "File",
                     "fieldMappings": [
                       {
                         "columnName": "FileName",
                         "identifier": "Name"
                       }
-                    ],
-                    "entityType": "File"
+                    ]
                   }
                 ],
                 "eventGroupingSettings": {
@@ -1807,9 +2284,9 @@
                 },
                 "customDetails": {
                   "FileName": "FileName",
-                  "SampleId": "SampleId",
-                  "Source": "Source",
                   "SandboxScore": "SandboxScore",
+                  "Source": "Source",
+                  "SampleId": "SampleId",
                   "SandboxVerdict": "SandboxVerdict"
                 },
                 "alertDetailsOverride": {
@@ -1819,11 +2296,11 @@
                 "incidentConfiguration": {
                   "createIncident": true,
                   "groupingConfiguration": {
-                    "matchingMethod": "Selected",
-                    "enabled": true,
                     "groupByCustomDetails": [
                       "SandboxVerdict"
                     ],
+                    "matchingMethod": "Selected",
+                    "enabled": true,
                     "lookbackDuration": "1h",
                     "reopenClosedIncident": false
                   }
@@ -1913,35 +2390,35 @@
                 ],
                 "entityMappings": [
                   {
+                    "entityType": "File",
                     "fieldMappings": [
                       {
                         "columnName": "FileName",
                         "identifier": "Name"
                       }
-                    ],
-                    "entityType": "File"
+                    ]
                   },
                   {
+                    "entityType": "Mailbox",
                     "fieldMappings": [
                       {
                         "columnName": "EmailFrom",
                         "identifier": "MailboxPrimaryAddress"
                       }
-                    ],
-                    "entityType": "Mailbox"
+                    ]
                   }
                 ],
                 "eventGroupingSettings": {
                   "aggregationKind": "AlertPerResult"
                 },
                 "customDetails": {
-                  "EmailFrom": "EmailFrom",
-                  "SampleId": "SampleId",
-                  "Source": "Source",
                   "FileName": "FileName",
                   "SandboxVerdict": "SandboxVerdict",
-                  "SandboxScore": "SandboxScore",
-                  "EmailTo": "EmailTo"
+                  "SampleId": "SampleId",
+                  "EmailTo": "EmailTo",
+                  "EmailFrom": "EmailFrom",
+                  "Source": "Source",
+                  "SandboxScore": "SandboxScore"
                 },
                 "alertDetailsOverride": {
                   "alertDescriptionFormat": "_Recorded Future Sandbox - Malicious Email Attachment Detected_\n\n**Sandbox Score:** {{SandboxScore}}/100\n\n**Verdict:** {{SandboxVerdict}}\n\n**Sample ID:** {{SampleId}}\n\nA malicious file was detected in an email attachment. Review the full sandbox report and investigate the sender.\n",
@@ -1950,11 +2427,11 @@
                 "incidentConfiguration": {
                   "createIncident": true,
                   "groupingConfiguration": {
-                    "matchingMethod": "Selected",
-                    "enabled": true,
                     "groupByCustomDetails": [
                       "EmailFrom"
                     ],
+                    "matchingMethod": "Selected",
+                    "enabled": true,
                     "lookbackDuration": "1h",
                     "reopenClosedIncident": false
                   }
@@ -2050,23 +2527,23 @@
                   "RuleId": "RuleId"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nAlertID:\n{{AlertID}}\n\nTriggered: {{Triggered}}\n\nAI Summary: {{AISummary}}\n",
                   "alertDisplayNameFormat": "Alert: {{AlertName}}",
                   "alertDynamicProperties": [
                     {
-                      "alertProperty": "AlertLink",
-                      "value": "URL"
+                      "value": "URL",
+                      "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nAlertID:\n{{AlertID}}\n\nTriggered: {{Triggered}}\n\nAI Summary: {{AISummary}}\n"
+                  ]
                 },
                 "incidentConfiguration": {
                   "createIncident": true,
                   "groupingConfiguration": {
-                    "matchingMethod": "Selected",
-                    "enabled": true,
                     "groupByCustomDetails": [
                       "RuleId"
                     ],
+                    "matchingMethod": "Selected",
+                    "enabled": true,
                     "lookbackDuration": "1h",
                     "reopenClosedIncident": false
                   }
@@ -2161,23 +2638,23 @@
                   "Category": "category"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nEvidence Summary:\n{{alert_description}}\n\nPriority: {{priority}}\n\nRecorded Future Playbook Alert ID\n{{id}}\n",
                   "alertDisplayNameFormat": "Alert: {{rule_label}}  - {{alert_title}}",
                   "alertDynamicProperties": [
                     {
-                      "alertProperty": "AlertLink",
-                      "value": "link"
+                      "value": "link",
+                      "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nEvidence Summary:\n{{alert_description}}\n\nPriority: {{priority}}\n\nRecorded Future Playbook Alert ID\n{{id}}\n"
+                  ]
                 },
                 "incidentConfiguration": {
                   "createIncident": true,
                   "groupingConfiguration": {
-                    "matchingMethod": "Selected",
-                    "enabled": true,
                     "groupByCustomDetails": [
                       "Category"
                     ],
+                    "matchingMethod": "Selected",
+                    "enabled": true,
                     "lookbackDuration": "1h",
                     "reopenClosedIncident": false
                   }
@@ -10257,7 +10734,7 @@
         "contentSchemaVersion": "3.0.0",
         "displayName": "Recorded Future",
         "publisherDisplayName": "Recorded Future Support Team",
-        "descriptionHtml": "<p><strong>Note:</strong> Please refer to the following before installing the solution:</p>\n<p>• Review the solution <a href=\"https://github.com/Azure/Azure-Sentinel/tree/master/Solutions/Recorded%20Future/ReleaseNotes.md\">Release Notes</a></p>\n<p>• There may be <a href=\"https://aka.ms/sentinelsolutionsknownissues\">known issues</a> pertaining to this Solution, please refer to them before installing.</p>\n<p><a href=\"https://www.recordedfuture.com/\">Recorded Future</a> is the worlds largest provider of intelligence for enterprise security. By combining persistent and pervasive automated data collection and analytics with human analysis, Recorded Future delivers intelligence that is timely, accurate, and actionable.</p>\n<p>Underlying Microsoft Technologies used:\nThis solution depends on underlying Microsoft technologies. Some of these dependencies either may be in Preview state or might result in additional ingestion or operational costs:</p>\n<ul>\n<li><a href=\"https://learn.microsoft.com/en-us/azure/azure-monitor/logs/workspace-design\">Log Analytics</a></li>\n<li><a href=\"https://learn.microsoft.com/en-us/azure/logic-apps/logic-apps-pricing\">Logic apps</a></li>\n<li><a href=\"https://learn.microsoft.com/en-us/azure/sentinel/upload-indicators-api\">Threat Indicators</a></li>\n</ul>\n<p><strong>Data Connectors:</strong> 1, <strong>Workbooks:</strong> 8, <strong>Analytic Rules:</strong> 8, <strong>Custom Azure Logic Apps Connectors:</strong> 1, <strong>Playbooks:</strong> 13</p>\n<p><a href=\"https://aka.ms/azuresentinel\">Learn more about Microsoft Sentinel</a> | <a href=\"https://aka.ms/azuresentinelsolutionsdoc\">Learn more about Solutions</a></p>\n",
+        "descriptionHtml": "<p><strong>Note:</strong> Please refer to the following before installing the solution:</p>\n<p>• Review the solution <a href=\"https://github.com/Azure/Azure-Sentinel/tree/master/Solutions/Recorded%20Future/ReleaseNotes.md\">Release Notes</a></p>\n<p>• There may be <a href=\"https://aka.ms/sentinelsolutionsknownissues\">known issues</a> pertaining to this Solution, please refer to them before installing.</p>\n<p><a href=\"https://www.recordedfuture.com/\">Recorded Future</a> is the worlds largest provider of intelligence for enterprise security. By combining persistent and pervasive automated data collection and analytics with human analysis, Recorded Future delivers intelligence that is timely, accurate, and actionable.</p>\n<p>Underlying Microsoft Technologies used:\nThis solution depends on underlying Microsoft technologies. Some of these dependencies either may be in Preview state or might result in additional ingestion or operational costs:</p>\n<ul>\n<li><a href=\"https://learn.microsoft.com/en-us/azure/azure-monitor/logs/workspace-design\">Log Analytics</a></li>\n<li><a href=\"https://learn.microsoft.com/en-us/azure/logic-apps/logic-apps-pricing\">Logic apps</a></li>\n<li><a href=\"https://learn.microsoft.com/en-us/azure/sentinel/upload-indicators-api\">Threat Indicators</a></li>\n</ul>\n<p><strong>Data Connectors:</strong> 2, <strong>Workbooks:</strong> 8, <strong>Analytic Rules:</strong> 8, <strong>Custom Azure Logic Apps Connectors:</strong> 1, <strong>Playbooks:</strong> 13</p>\n<p><a href=\"https://aka.ms/azuresentinel\">Learn more about Microsoft Sentinel</a> | <a href=\"https://aka.ms/azuresentinelsolutionsdoc\">Learn more about Solutions</a></p>\n",
         "contentKind": "Solution",
         "contentProductId": "[variables('_solutioncontentProductId')]",
         "id": "[variables('_solutioncontentProductId')]",

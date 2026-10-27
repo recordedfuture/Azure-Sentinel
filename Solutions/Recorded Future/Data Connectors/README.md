@@ -23,22 +23,30 @@ the Log Ingestion API (`RecordedFuture-Alert-Importer`, `RecordedFuture-Playbook
 `RecordedFuture-ThreatMap-Importer`, `RecordedFuture-ThreatMapMalware-Importer`,
 `RecordedFuture-Sandbox_StorageAccount`, `RecordedFuture-Sandbox_Outlook_Attachment`).
 
-### `RecordedFuture_PlaybookAlerts_ccf/` (preview)
-Codeless Connector Framework (CCF) connector for playbook alerts, replacing the
-`RecordedFuture-Playbook-Alert-Importer` Logic App.
-- `RecordedFuture_PlaybookAlerts_ConnectorDefinition.json`: the `RecordedFuturePlaybookAlertsCCF`
-  tile (`kind: Customizable`, API token, optional categories/priorities/statuses, connect toggle).
-- `RecordedFuture_PlaybookAlerts_PollerConfig.json`: the `RestApiPoller` (`GET /gw/azure/playbook-alert/export`,
-  `X-RFToken`, 60-minute window on `updated_from`/`updated_until`, offset paging `from`/`limit`=100).
-- `azuredeploy_RecordedFuture_PlaybookAlerts_ccf.json`: standalone template that deploys the tile and an
-  active poller directly, for manual testing without Content Hub.
+### `RecordedFuture_ccf/` (preview)
+Codeless Connector Framework (CCF) connector, packaged by `Tools/Create-Azure-Sentinel-Solution/V3/createSolutionV3.ps1`.
+One **Recorded Future (via Codeless Connector Framework)** tile (`RecordedFutureCCF`) with an **Add connection**
+dialog (`DataConnectorsGrid`/`ContextPane`). Each connection picks one or more data types; today the only one is
+**Playbook Alerts**, which replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App.
+- `RecordedFuture_ConnectorDefinition.json`: the tile. The dialog has the API token, a `dataTypes` multi-select, and
+  optional multi-select filters for playbook alert categories, priorities and statuses (empty means all).
+- `RecordedFuture_PollerConfig.json`: one `RestApiPoller` per data type, gated by `condition`
+  (`contains(parameters('dataTypes'), 'PlaybookAlerts')`). Playbook Alerts: `GET /gw/azure/playbook-alert/export`,
+  `X-RFToken`, 60-minute window on `updated_from`/`updated_until`, offset paging `from`/`limit`=25.
+  Multi-select values arrive as arrays and are sent as comma-separated strings (`join(parameters('x'), ',')`).
+  To add a data type: add an option to `dataTypes`, a gated poller, and its stream/table to the DCR and table files.
+- `RecordedFuture_DCR.json`, `table_RecordedFuturePlaybookAlerts_V2_CL.json`: DCR and table installed with the
+  connector. The stream declaration, `transformKql` and table schema are copied from `azuredeploy.json`; keep them
+  in sync (a Content Hub install re-PUTs the table, so a column missing here would be removed).
+- `azuredeploy_RecordedFuture_ccf.json`: manual-test template. Deploys the tile, table, DCR (on an existing DCE,
+  default `recorded-future-dce`) and an active Playbook Alerts poller directly, without Content Hub.
+  `apiEndpoint` can point at a non-production BFI.
 
-The poller has no DCR or table of its own: it writes to stream `Custom-RecordedFuturePlaybookAlerts_V2_CL`
-of the existing `recorded-future-dcr-playbook-alerts` DCR via `recorded-future-dce` (both from `azuredeploy.json`),
-looked up by name in the workspace resource group when the connector is connected. It is a separate tile
-because the packaged **Recorded Future - Log Ingestion** tile is a legacy `GenericUI` connector, which cannot
-host a CCF connect toggle. Its entries in `../Package/mainTemplate.json` were added by hand; it is not in
-`../Data/Solution_RecordedFuture.json` because the packaging tool expects CCF folders to contain their own DCR and table files.
+The CCF DCR is named `recorded-future-dcr-playbook-alerts-ccf`, not `recorded-future-dcr-playbook-alerts`.
+The packaging tool points a CCF DCR at a DCE named after the workspace, so reusing the Logic App's DCR name
+would re-point that DCR away from `recorded-future-dce` on install (and back on a redeploy of `azuredeploy.json`),
+which could break whichever path wrote last. Both DCRs write the same stream into the same table, so the
+data is identical whichever path ingests it.
 
 ## Known duplication
 
