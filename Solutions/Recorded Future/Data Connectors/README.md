@@ -35,6 +35,15 @@ dialog (`DataConnectorsGrid`/`ContextPane`). Each connection picks one or more d
   `X-RFToken`, 60-minute window on `updated_from`/`updated_until`, offset paging `from`/`limit`=25.
   Multi-select values arrive as arrays and are sent as comma-separated strings (`join(parameters('x'), ',')`).
   To add a data type: add an option to `dataTypes`, a gated poller, and its stream/table to the DCR and table files.
+- Poller names: the packaging tool names each connection's poller `<name><newGuid()>` (36 chars), and
+  `Microsoft.SecurityInsights/dataConnectors` names are limited to 64, so a poller `name` must be at most 28 chars
+  (`RecordedFuturePBAPoller` = 23). A longer name fails at **Connect** with "name must be between 1 and 64 characters".
+- Permissions (shown on the tile as prerequisites):
+  - Install the solution (deploys the DCR and the table): **Contributor**, or **Monitoring Contributor** +
+    **Log Analytics Contributor**, on the workspace's resource group.
+  - **Add connection** → Connect (deploys only a `Microsoft.SecurityInsights/dataConnectors` `RestApiPoller`; no DCR,
+    table or role assignment): **Microsoft Sentinel Contributor** on the workspace's resource group
+    (workspace read/write/delete).
 - `RecordedFuture_DCR.json`, `table_RecordedFuturePlaybookAlerts_V2_CL.json`: DCR and table installed with the
   connector. The stream declaration, `transformKql` and table schema are copied from `azuredeploy.json`; keep them
   in sync (a Content Hub install re-PUTs the table, so a column missing here would be removed).

@@ -61,6 +61,10 @@
                     {
                         "name": "Recorded Future API Token",
                         "description": "A Recorded Future API token with access to the selected data types (e.g. Playbook Alerts)."
+                    },
+                    {
+                        "name": "Azure roles",
+                        "description": "**Install** the solution (data collection rule `recorded-future-dcr-playbook-alerts-ccf` and table `RecordedFuturePlaybookAlerts_V2_CL`): **Contributor**, or **Monitoring Contributor** and **Log Analytics Contributor**, on the workspace's resource group. **Add connection** (creates a Microsoft Sentinel data connector in the workspace): **Microsoft Sentinel Contributor** on the workspace's resource group. No role assignments are created."
                     }
                 ]
             },
