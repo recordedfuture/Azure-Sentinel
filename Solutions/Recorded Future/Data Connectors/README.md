@@ -51,10 +51,15 @@ dialog (`DataConnectorsGrid`/`ContextPane`). Each connection picks one or more d
   default `recorded-future-dce`) and an active Playbook Alerts poller directly, without Content Hub.
   `apiEndpoint` can point at a non-production BFI.
 
-The CCF DCR is named `recorded-future-dcr-playbook-alerts-ccf`, not `recorded-future-dcr-playbook-alerts`.
+The CCF DCR is named `RecordedFutureCCFDCR`, not `recorded-future-dcr-playbook-alerts`.
 The packaging tool points a CCF DCR at a DCE named after the workspace, so reusing the Logic App's DCR name
 would re-point that DCR away from `recorded-future-dce` on install (and back on a redeploy of `azuredeploy.json`),
-which could break whichever path wrote last. Both DCRs write the same stream into the same table, so the
+which could break whichever path wrote last.
+
+Keep the CCF DCR name short (at most ~25 characters). On Connect, the portal creates the DCR as
+`Microsoft-Sentinel-<DCR name>-<first 12 characters of the workspace customerId>`, and DCR names are limited to
+64 characters. The old name `recorded-future-dcr-playbook-alerts-ccf` made that 71 characters and Connect failed
+with `InvalidPayload`. `RecordedFutureCCFDCR` gives 52. Both DCRs write the same stream into the same table, so the
 data is identical whichever path ingests it.
 
 ## Known duplication

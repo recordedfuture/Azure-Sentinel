@@ -1,5 +1,5 @@
 {
-    "name": "recorded-future-dcr-playbook-alerts-ccf",
+    "name": "RecordedFutureCCFDCR",
     "apiVersion": "2024-03-11",
     "type": "Microsoft.Insights/dataCollectionRules",
     "location": "{{location}}",
