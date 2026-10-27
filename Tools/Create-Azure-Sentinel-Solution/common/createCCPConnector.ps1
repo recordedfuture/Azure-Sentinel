@@ -117,6 +117,14 @@ function New-ParametersForConnectorInstuctions($instructions) {
                     type = "array";
                 }
             }
+            elseif ($instruction.parameters.required -eq $false) {
+                # Optional dropdowns may be left empty; the portal then omits the value,
+                # so the default must be a valid (empty) array, not the parameter name.
+                $newParameter = [PSCustomObject]@{
+                    defaultValue = @();
+                    type         = "array";
+                }
+            }
             else {
                 $newParameter = [PSCustomObject]@{
                     defaultValue = $instruction.parameters.name;

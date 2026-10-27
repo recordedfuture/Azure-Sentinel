@@ -1599,15 +1599,15 @@
               "type": "array"
             },
             "categories": {
-              "defaultValue": "categories",
+              "defaultValue": [],
               "type": "array"
             },
             "priorities": {
-              "defaultValue": "priorities",
+              "defaultValue": [],
               "type": "array"
             },
             "statuses": {
-              "defaultValue": "statuses",
+              "defaultValue": [],
               "type": "array"
             }
           },
