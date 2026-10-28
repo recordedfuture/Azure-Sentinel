@@ -26,17 +26,26 @@ the Log Ingestion API (`RecordedFuture-Alert-Importer`, `RecordedFuture-Playbook
 ### `RecordedFuture_ccf/` (preview)
 Codeless Connector Framework (CCF) connector, packaged by `Tools/Create-Azure-Sentinel-Solution/V3/createSolutionV3.ps1`.
 One **Recorded Future (via Codeless Connector Framework)** tile (`RecordedFutureCCF`) with an **Add connection**
-dialog (`DataConnectorsGrid`/`ContextPane`). Each connection picks one or more data types; today the only one is
+dialog (`DataConnectorsGrid`/`ContextPane`). Each connection imports exactly one data type (single-select); today the only one is
 **Playbook Alerts**, which replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App.
 - `RecordedFuture_ConnectorDefinition.json`: the tile. The dialog has a required connection name (`friendlyName`), the
-  API token, a `dataTypes` multi-select, and optional multi-select filters for playbook alert categories, priorities
-  and statuses (empty means all). The grid shows each connection's name, data types and filters (from
-  `addOnAttributes` and `request.queryParameters`); connections can only be deleted, not edited.
+  API token, a required single-select `dataTypes` dropdown (one data type per connection, preselected to `PlaybookAlerts`),
+  and optional multi-select filters for playbook alert categories, priorities and statuses (empty means all).
+  The grid has three generic columns, the same for every data type: **Name** (`addOnAttributes.friendlyName`),
+  **Data type** (`addOnAttributes.dataType`) and **Filters** (`addOnAttributes.filters`). Connections can only be
+  deleted, not edited.
 - `RecordedFuture_PollerConfig.json`: one `RestApiPoller` per data type, gated by `condition`
   (`contains(parameters('dataTypes'), 'PlaybookAlerts')`). Playbook Alerts: `GET /gw/azure/playbook-alert/export`,
   `X-RFToken`, 60-minute window on `updated_from`/`updated_until`, offset paging `from`/`limit`=25.
-  Multi-select values arrive as arrays and are sent as comma-separated strings (`join(parameters('x'), ',')`).
+  The packaging tool emits every Dropdown parameter as `type: array`, single-select included (the portal passes a
+  one-element array, cf. QualysVM's `parameters('x')[0]`), so `contains()` and `join()` work on all of them.
+  Multi-select values are sent as comma-separated strings (`join(parameters('x'), ',')`).
   To add a data type: add an option to `dataTypes`, a gated poller, and its stream/table to the DCR and table files.
+  **Convention: every poller must set `addOnAttributes.dataType`** (a readable label, e.g. `Playbook alerts`) **and
+  `addOnAttributes.filters`** (a readable summary of its filters built with ARM expressions, e.g.
+  `Categories: All; Priorities: High,Moderate; Statuses: All`, where an empty selection becomes `All` via
+  `if(empty(parameters('x')), 'All', join(parameters('x'), ','))`; use `[[` so it is evaluated at Connect time).
+  The grid only reads these two attributes, so a poller that omits them shows blank cells.
 - Poller names: `RecordedFuturePBA` + `uniqueString(parameters('friendlyName'))` (17 + 13 = 30 chars; the
   `Microsoft.SecurityInsights/dataConnectors` limit is 64), as Trend Micro CAS does. The packaging tool passes a name
   that starts with `[[concat` through unchanged, so no `newGuid()` is appended. Re-adding a connection with the same

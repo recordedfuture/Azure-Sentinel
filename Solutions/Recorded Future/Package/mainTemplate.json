@@ -809,7 +809,7 @@
                     },
                     {
                       "title": "2. Add a connection",
-                      "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick the data types and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
+                      "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick one data type and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
                       "instructions": [
                         {
                           "type": "DataConnectorsGrid",
@@ -820,20 +820,12 @@
                                 "columnValue": "properties.addOnAttributes.friendlyName"
                               },
                               {
-                                "columnName": "Data types",
-                                "columnValue": "properties.addOnAttributes.dataTypes"
+                                "columnName": "Data type",
+                                "columnValue": "properties.addOnAttributes.dataType"
                               },
                               {
-                                "columnName": "Categories",
-                                "columnValue": "properties.request.queryParameters.categories"
-                              },
-                              {
-                                "columnName": "Priorities",
-                                "columnValue": "properties.request.queryParameters.priorities"
-                              },
-                              {
-                                "columnName": "Statuses",
-                                "columnValue": "properties.request.queryParameters.statuses"
+                                "columnName": "Filters",
+                                "columnValue": "properties.addOnAttributes.filters"
                               }
                             ],
                             "menuItems": [
@@ -875,7 +867,7 @@
                                   {
                                     "type": "InfoMessage",
                                     "parameters": {
-                                      "text": "Re-adding a connection with the same name replaces it (settings can't be edited in place). Connections with overlapping filters ingest the same alerts twice; one connection is usually enough. Empty filters = all.",
+                                      "text": "Each connection imports one data type; add one connection per data type. Re-adding a connection with the same name replaces it (settings can't be edited in place). Connections of the same data type with overlapping filters ingest the same alerts twice; one connection is usually enough. Empty filters = all.",
                                       "visible": true,
                                       "inline": true
                                     }
@@ -901,13 +893,13 @@
                                   {
                                     "type": "Markdown",
                                     "parameters": {
-                                      "content": "## Data types\n\nChoose which Recorded Future data to import with this connection."
+                                      "content": "## Data type\n\nChoose the Recorded Future data this connection imports (one data type per connection)."
                                     }
                                   },
                                   {
                                     "type": "Dropdown",
                                     "parameters": {
-                                      "label": "Data types",
+                                      "label": "Data type",
                                       "name": "dataTypes",
                                       "options": [
                                         {
@@ -915,8 +907,8 @@
                                           "text": "Playbook Alerts (RecordedFuturePlaybookAlerts_V2_CL)"
                                         }
                                       ],
-                                      "placeholder": "Select data types",
-                                      "isMultiSelect": true,
+                                      "placeholder": "Select a data type",
+                                      "isMultiSelect": false,
                                       "required": true,
                                       "defaultAllSelected": true
                                     }
@@ -1352,7 +1344,7 @@
             },
             {
               "title": "2. Add a connection",
-              "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick the data types and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
+              "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick one data type and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
               "instructions": [
                 {
                   "type": "DataConnectorsGrid",
@@ -1363,20 +1355,12 @@
                         "columnValue": "properties.addOnAttributes.friendlyName"
                       },
                       {
-                        "columnName": "Data types",
-                        "columnValue": "properties.addOnAttributes.dataTypes"
+                        "columnName": "Data type",
+                        "columnValue": "properties.addOnAttributes.dataType"
                       },
                       {
-                        "columnName": "Categories",
-                        "columnValue": "properties.request.queryParameters.categories"
-                      },
-                      {
-                        "columnName": "Priorities",
-                        "columnValue": "properties.request.queryParameters.priorities"
-                      },
-                      {
-                        "columnName": "Statuses",
-                        "columnValue": "properties.request.queryParameters.statuses"
+                        "columnName": "Filters",
+                        "columnValue": "properties.addOnAttributes.filters"
                       }
                     ],
                     "menuItems": [
@@ -1418,7 +1402,7 @@
                           {
                             "type": "InfoMessage",
                             "parameters": {
-                              "text": "Re-adding a connection with the same name replaces it (settings can't be edited in place). Connections with overlapping filters ingest the same alerts twice; one connection is usually enough. Empty filters = all.",
+                              "text": "Each connection imports one data type; add one connection per data type. Re-adding a connection with the same name replaces it (settings can't be edited in place). Connections of the same data type with overlapping filters ingest the same alerts twice; one connection is usually enough. Empty filters = all.",
                               "visible": true,
                               "inline": true
                             }
@@ -1444,13 +1428,13 @@
                           {
                             "type": "Markdown",
                             "parameters": {
-                              "content": "## Data types\n\nChoose which Recorded Future data to import with this connection."
+                              "content": "## Data type\n\nChoose the Recorded Future data this connection imports (one data type per connection)."
                             }
                           },
                           {
                             "type": "Dropdown",
                             "parameters": {
-                              "label": "Data types",
+                              "label": "Data type",
                               "name": "dataTypes",
                               "options": [
                                 {
@@ -1458,8 +1442,8 @@
                                   "text": "Playbook Alerts (RecordedFuturePlaybookAlerts_V2_CL)"
                                 }
                               ],
-                              "placeholder": "Select data types",
-                              "isMultiSelect": true,
+                              "placeholder": "Select a data type",
+                              "isMultiSelect": false,
                               "required": true,
                               "defaultAllSelected": true
                             }
@@ -1789,7 +1773,8 @@
                 },
                 "addOnAttributes": {
                   "friendlyName": "[[parameters('friendlyName')]",
-                  "dataTypes": "[[join(parameters('dataTypes'), ',')]"
+                  "dataType": "Playbook alerts",
+                  "filters": "[[concat('Categories: ', if(empty(parameters('categories')), 'All', join(parameters('categories'), ',')), '; Priorities: ', if(empty(parameters('priorities')), 'All', join(parameters('priorities'), ',')), '; Statuses: ', if(empty(parameters('statuses')), 'All', join(parameters('statuses'), ',')))]"
                 }
               },
               "condition": "[[contains(parameters('dataTypes'), 'PlaybookAlerts')]"
@@ -1880,23 +1865,23 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Hash}} from the {{Type}} table.\\n",
+                  "alertDisplayNameFormat": "{{Description}}",
                   "alertDynamicProperties": [
                     {
                       "value": "RecordedFuturePortalLink",
                       "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDisplayNameFormat": "{{Description}}",
-                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Hash}} from the {{Type}} table.\\n"
+                  ]
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
-                    "enabled": true,
                     "lookbackDuration": "1h",
+                    "reopenClosedIncident": false,
                     "matchingMethod": "AllEntities",
-                    "reopenClosedIncident": false
-                  }
+                    "enabled": true
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -2011,23 +1996,23 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{NetworkIP}} from the {{Type}} table.\\n",
+                  "alertDisplayNameFormat": "{{Description}}",
                   "alertDynamicProperties": [
                     {
                       "value": "RecordedFuturePortalLink",
                       "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDisplayNameFormat": "{{Description}}",
-                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{NetworkIP}} from the {{Type}} table.\\n"
+                  ]
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
-                    "enabled": true,
                     "lookbackDuration": "1h",
+                    "reopenClosedIncident": false,
                     "matchingMethod": "AllEntities",
-                    "reopenClosedIncident": false
-                  }
+                    "enabled": true
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -2142,23 +2127,23 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Domain}} from the {{Type}} table.\\n",
+                  "alertDisplayNameFormat": "{{Description}}",
                   "alertDynamicProperties": [
                     {
                       "value": "RecordedFuturePortalLink",
                       "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDisplayNameFormat": "{{Description}}",
-                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Domain}} from the {{Type}} table.\\n"
+                  ]
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
-                    "enabled": true,
                     "lookbackDuration": "1h",
+                    "reopenClosedIncident": false,
                     "matchingMethod": "AllEntities",
-                    "reopenClosedIncident": false
-                  }
+                    "enabled": true
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -2271,23 +2256,23 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "*{{Description}}**\\n\\nCorrelation found on {{Url}} from the {{Type}} table.\\n",
+                  "alertDisplayNameFormat": "{{Description}}",
                   "alertDynamicProperties": [
                     {
                       "value": "RecordedFuturePortalLink",
                       "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDisplayNameFormat": "{{Description}}",
-                  "alertDescriptionFormat": "*{{Description}}**\\n\\nCorrelation found on {{Url}} from the {{Type}} table.\\n"
+                  ]
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
-                    "enabled": true,
                     "lookbackDuration": "1h",
+                    "reopenClosedIncident": false,
                     "matchingMethod": "AllEntities",
-                    "reopenClosedIncident": false
-                  }
+                    "enabled": true
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -2387,27 +2372,27 @@
                   "aggregationKind": "AlertPerResult"
                 },
                 "customDetails": {
-                  "SandboxScore": "SandboxScore",
                   "SandboxVerdict": "SandboxVerdict",
-                  "FileName": "FileName",
                   "Source": "Source",
-                  "SampleId": "SampleId"
+                  "FileName": "FileName",
+                  "SampleId": "SampleId",
+                  "SandboxScore": "SandboxScore"
                 },
                 "alertDetailsOverride": {
-                  "alertDisplayNameFormat": "Malicious File in Storage: {{FileName}}",
-                  "alertDescriptionFormat": "_Recorded Future Sandbox - Malicious File in Storage Account_\n\n**Sandbox Score:** {{SandboxScore}}/100\n\n**Verdict:** {{SandboxVerdict}}\n\n**Sample ID:** {{SampleId}}\n\nA malicious file was detected in an Azure Storage Account. Investigate the source of this file and review the full sandbox report.\n"
+                  "alertDescriptionFormat": "_Recorded Future Sandbox - Malicious File in Storage Account_\n\n**Sandbox Score:** {{SandboxScore}}/100\n\n**Verdict:** {{SandboxVerdict}}\n\n**Sample ID:** {{SampleId}}\n\nA malicious file was detected in an Azure Storage Account. Investigate the source of this file and review the full sandbox report.\n",
+                  "alertDisplayNameFormat": "Malicious File in Storage: {{FileName}}"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
-                    "enabled": true,
                     "lookbackDuration": "1h",
-                    "matchingMethod": "Selected",
                     "reopenClosedIncident": false,
+                    "matchingMethod": "Selected",
+                    "enabled": true,
                     "groupByCustomDetails": [
                       "SandboxVerdict"
                     ]
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -2517,28 +2502,28 @@
                 },
                 "customDetails": {
                   "EmailTo": "EmailTo",
-                  "SampleId": "SampleId",
+                  "EmailFrom": "EmailFrom",
                   "FileName": "FileName",
                   "SandboxVerdict": "SandboxVerdict",
+                  "SampleId": "SampleId",
                   "SandboxScore": "SandboxScore",
-                  "Source": "Source",
-                  "EmailFrom": "EmailFrom"
+                  "Source": "Source"
                 },
                 "alertDetailsOverride": {
-                  "alertDisplayNameFormat": "Malicious Email Attachment: {{FileName}} from {{EmailFrom}}",
-                  "alertDescriptionFormat": "_Recorded Future Sandbox - Malicious Email Attachment Detected_\n\n**Sandbox Score:** {{SandboxScore}}/100\n\n**Verdict:** {{SandboxVerdict}}\n\n**Sample ID:** {{SampleId}}\n\nA malicious file was detected in an email attachment. Review the full sandbox report and investigate the sender.\n"
+                  "alertDescriptionFormat": "_Recorded Future Sandbox - Malicious Email Attachment Detected_\n\n**Sandbox Score:** {{SandboxScore}}/100\n\n**Verdict:** {{SandboxVerdict}}\n\n**Sample ID:** {{SampleId}}\n\nA malicious file was detected in an email attachment. Review the full sandbox report and investigate the sender.\n",
+                  "alertDisplayNameFormat": "Malicious Email Attachment: {{FileName}} from {{EmailFrom}}"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
-                    "enabled": true,
                     "lookbackDuration": "1h",
-                    "matchingMethod": "Selected",
                     "reopenClosedIncident": false,
+                    "matchingMethod": "Selected",
+                    "enabled": true,
                     "groupByCustomDetails": [
                       "EmailFrom"
                     ]
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -2627,30 +2612,30 @@
                   "aggregationKind": "AlertPerResult"
                 },
                 "customDetails": {
-                  "RuleName": "RuleName",
-                  "RuleId": "RuleId"
+                  "RuleId": "RuleId",
+                  "RuleName": "RuleName"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nAlertID:\n{{AlertID}}\n\nTriggered: {{Triggered}}\n\nAI Summary: {{AISummary}}\n",
+                  "alertDisplayNameFormat": "Alert: {{AlertName}}",
                   "alertDynamicProperties": [
                     {
                       "value": "URL",
                       "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDisplayNameFormat": "Alert: {{AlertName}}",
-                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nAlertID:\n{{AlertID}}\n\nTriggered: {{Triggered}}\n\nAI Summary: {{AISummary}}\n"
+                  ]
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
-                    "enabled": true,
                     "lookbackDuration": "1h",
-                    "matchingMethod": "Selected",
                     "reopenClosedIncident": false,
+                    "matchingMethod": "Selected",
+                    "enabled": true,
                     "groupByCustomDetails": [
                       "RuleId"
                     ]
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -2742,26 +2727,26 @@
                   "Category": "category"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nEvidence Summary:\n{{alert_description}}\n\nPriority: {{priority}}\n\nRecorded Future Playbook Alert ID\n{{id}}\n",
+                  "alertDisplayNameFormat": "Alert: {{rule_label}}  - {{alert_title}}",
                   "alertDynamicProperties": [
                     {
                       "value": "link",
                       "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDisplayNameFormat": "Alert: {{rule_label}}  - {{alert_title}}",
-                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nEvidence Summary:\n{{alert_description}}\n\nPriority: {{priority}}\n\nRecorded Future Playbook Alert ID\n{{id}}\n"
+                  ]
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
-                    "enabled": true,
                     "lookbackDuration": "1h",
-                    "matchingMethod": "Selected",
                     "reopenClosedIncident": false,
+                    "matchingMethod": "Selected",
+                    "enabled": true,
                     "groupByCustomDetails": [
                       "Category"
                     ]
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },

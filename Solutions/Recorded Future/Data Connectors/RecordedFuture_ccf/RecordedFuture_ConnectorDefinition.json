@@ -79,7 +79,7 @@
                 },
                 {
                     "title": "2. Add a connection",
-                    "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick the data types and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
+                    "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick one data type and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
                     "instructions": [
                         {
                             "type": "DataConnectorsGrid",
@@ -90,20 +90,12 @@
                                         "columnValue": "properties.addOnAttributes.friendlyName"
                                     },
                                     {
-                                        "columnName": "Data types",
-                                        "columnValue": "properties.addOnAttributes.dataTypes"
+                                        "columnName": "Data type",
+                                        "columnValue": "properties.addOnAttributes.dataType"
                                     },
                                     {
-                                        "columnName": "Categories",
-                                        "columnValue": "properties.request.queryParameters.categories"
-                                    },
-                                    {
-                                        "columnName": "Priorities",
-                                        "columnValue": "properties.request.queryParameters.priorities"
-                                    },
-                                    {
-                                        "columnName": "Statuses",
-                                        "columnValue": "properties.request.queryParameters.statuses"
+                                        "columnName": "Filters",
+                                        "columnValue": "properties.addOnAttributes.filters"
                                     }
                                 ],
                                 "menuItems": [
@@ -145,7 +137,7 @@
                                             {
                                                 "type": "InfoMessage",
                                                 "parameters": {
-                                                    "text": "Re-adding a connection with the same name replaces it (settings can't be edited in place). Connections with overlapping filters ingest the same alerts twice; one connection is usually enough. Empty filters = all.",
+                                                    "text": "Each connection imports one data type; add one connection per data type. Re-adding a connection with the same name replaces it (settings can't be edited in place). Connections of the same data type with overlapping filters ingest the same alerts twice; one connection is usually enough. Empty filters = all.",
                                                     "visible": true,
                                                     "inline": true
                                                 }
@@ -171,13 +163,13 @@
                                             {
                                                 "type": "Markdown",
                                                 "parameters": {
-                                                    "content": "## Data types\n\nChoose which Recorded Future data to import with this connection."
+                                                    "content": "## Data type\n\nChoose the Recorded Future data this connection imports (one data type per connection)."
                                                 }
                                             },
                                             {
                                                 "type": "Dropdown",
                                                 "parameters": {
-                                                    "label": "Data types",
+                                                    "label": "Data type",
                                                     "name": "dataTypes",
                                                     "options": [
                                                         {
@@ -185,8 +177,8 @@
                                                             "text": "Playbook Alerts (RecordedFuturePlaybookAlerts_V2_CL)"
                                                         }
                                                     ],
-                                                    "placeholder": "Select data types",
-                                                    "isMultiSelect": true,
+                                                    "placeholder": "Select a data type",
+                                                    "isMultiSelect": false,
                                                     "required": true,
                                                     "defaultAllSelected": true
                                                 }

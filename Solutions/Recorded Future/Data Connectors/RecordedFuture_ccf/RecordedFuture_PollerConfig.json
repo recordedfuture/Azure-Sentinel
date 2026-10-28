@@ -52,7 +52,8 @@
             },
             "addOnAttributes": {
                 "friendlyName": "[[parameters('friendlyName')]",
-                "dataTypes": "[[join(parameters('dataTypes'), ',')]"
+                "dataType": "Playbook alerts",
+                "filters": "[[concat('Categories: ', if(empty(parameters('categories')), 'All', join(parameters('categories'), ',')), '; Priorities: ', if(empty(parameters('priorities')), 'All', join(parameters('priorities'), ',')), '; Statuses: ', if(empty(parameters('statuses')), 'All', join(parameters('statuses'), ',')))]"
             }
         },
         "condition": "[[contains(parameters('dataTypes'), 'PlaybookAlerts')]"
