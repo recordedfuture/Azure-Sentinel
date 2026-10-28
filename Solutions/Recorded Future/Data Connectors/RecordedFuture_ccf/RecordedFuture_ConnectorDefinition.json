@@ -137,6 +137,14 @@
                                             {
                                                 "type": "InfoMessage",
                                                 "parameters": {
+                                                    "text": "Adding or replacing a connection requires the **Microsoft Sentinel Contributor** role on the workspace (or Contributor on its resource group). Without it, Connect fails with a permissions error.",
+                                                    "visible": true,
+                                                    "inline": true
+                                                }
+                                            },
+                                            {
+                                                "type": "InfoMessage",
+                                                "parameters": {
                                                     "text": "Re-adding a connection with the same name replaces it (settings can't be edited in place). Connections with overlapping filters ingest the same alerts twice; one connection is usually enough. Empty filters = all.",
                                                     "visible": true,
                                                     "inline": true

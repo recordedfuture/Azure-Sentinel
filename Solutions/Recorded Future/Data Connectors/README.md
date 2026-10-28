@@ -46,7 +46,11 @@ dialog (`DataConnectorsGrid`/`ContextPane`). Each connection picks one or more d
     **Log Analytics Contributor**, on the workspace's resource group.
   - **Add connection** → Connect (deploys only a `Microsoft.SecurityInsights/dataConnectors` `RestApiPoller`; no DCR,
     table or role assignment): **Microsoft Sentinel Contributor** on the workspace
-    (workspace read/write/delete).
+    (workspace read/write/delete), or **Contributor** on its resource group. Without it, Connect fails at runtime
+    with a permissions error.
+  - The workspace permission check at the top of the tile doesn't flag missing roles: a non-admin user sees no
+    cross there (verified in the portal). So the **Add connection** pane shows the required role in an
+    `InfoMessage` at the top.
   - The tile's `permissions.resourceProvider` list only lists `Microsoft.OperationalInsights/workspaces`. Deploying
     the connector definition rejects any other provider; the API error lists the only accepted values:
     `Microsoft.OperationalInsights/solutions`, `Microsoft.OperationalInsights/workspaces`,
