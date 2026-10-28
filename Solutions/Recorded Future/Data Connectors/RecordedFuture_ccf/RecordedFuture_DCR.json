@@ -1,0 +1,91 @@
+{
+    "name": "RecordedFutureCCFDCR",
+    "apiVersion": "2024-03-11",
+    "type": "Microsoft.Insights/dataCollectionRules",
+    "location": "{{location}}",
+    "properties": {
+        "dataCollectionEndpointId": "{{dataCollectionEndpointId}}",
+        "streamDeclarations": {
+            "Custom-RecordedFuturePlaybookAlerts_V2_CL": {
+                "columns": [
+                    {
+                        "name": "TimeGenerated",
+                        "type": "datetime"
+                    },
+                    {
+                        "name": "alert_title",
+                        "type": "string"
+                    },
+                    {
+                        "name": "id",
+                        "type": "string"
+                    },
+                    {
+                        "name": "category",
+                        "type": "string"
+                    },
+                    {
+                        "name": "rule_label",
+                        "type": "string"
+                    },
+                    {
+                        "name": "status",
+                        "type": "string"
+                    },
+                    {
+                        "name": "priority",
+                        "type": "string"
+                    },
+                    {
+                        "name": "created_date",
+                        "type": "datetime"
+                    },
+                    {
+                        "name": "updated_date",
+                        "type": "datetime"
+                    },
+                    {
+                        "name": "targets",
+                        "type": "string"
+                    },
+                    {
+                        "name": "evidence_summary",
+                        "type": "string"
+                    },
+                    {
+                        "name": "alert_description",
+                        "type": "string"
+                    },
+                    {
+                        "name": "link",
+                        "type": "string"
+                    },
+                    {
+                        "name": "owner_organisation_details",
+                        "type": "dynamic"
+                    }
+                ]
+            }
+        },
+        "destinations": {
+            "logAnalytics": [
+                {
+                    "workspaceResourceId": "{{workspaceResourceId}}",
+                    "name": "workspace"
+                }
+            ]
+        },
+        "dataFlows": [
+            {
+                "streams": [
+                    "Custom-RecordedFuturePlaybookAlerts_V2_CL"
+                ],
+                "destinations": [
+                    "workspace"
+                ],
+                "transformKql": "source | project TimeGenerated = datetime(null), alert_title = tostring(alert_title), id = tostring(id), category = tostring(category), rule_label = tostring(rule_label), status = tostring(status), priority = tostring(priority), created_date = todatetime(created_date), updated_date = todatetime(updated_date), targets = tostring(targets), evidence_summary = tostring(evidence_summary), alert_description = tostring(alert_description), link = tostring(link), owner_organisation_details = todynamic(tostring(owner_organisation_details))",
+                "outputStream": "Custom-RecordedFuturePlaybookAlerts_V2_CL"
+            }
+        ]
+    }
+}

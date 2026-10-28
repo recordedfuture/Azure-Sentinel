@@ -28,6 +28,20 @@
         "description": "Workspace name for Log Analytics where Microsoft Sentinel is setup"
       }
     },
+    "resourceGroupName": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().name]",
+      "metadata": {
+        "description": "resource group name where Microsoft Sentinel is setup"
+      }
+    },
+    "subscription": {
+      "type": "string",
+      "defaultValue": "[last(split(subscription().id, '/'))]",
+      "metadata": {
+        "description": "subscription id where Microsoft Sentinel is setup"
+      }
+    },
     "workbook1-name": {
       "type": "string",
       "defaultValue": "Recorded Future - Playbook Alerts Overview",
@@ -97,7 +111,7 @@
     "email": "support@recordedfuture.com",
     "_email": "[variables('email')]",
     "_solutionName": "Recorded Future",
-    "_solutionVersion": "3.2.23",
+    "_solutionVersion": "3.2.24",
     "solutionId": "recordedfuture1605638642586.recorded_future_sentinel_solution",
     "_solutionId": "[variables('solutionId')]",
     "uiConfigId1": "RecordedFuture",
@@ -109,6 +123,14 @@
     "dataConnectorTemplateSpecName1": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat(parameters('workspace'),'-dc-',uniquestring(variables('_dataConnectorContentId1'))))]",
     "dataConnectorVersion1": "1.0.0",
     "_dataConnectorcontentProductId1": "[concat(take(variables('_solutionId'),50),'-','dc','-', uniqueString(concat(variables('_solutionId'),'-','DataConnector','-',variables('_dataConnectorContentId1'),'-', variables('dataConnectorVersion1'))))]",
+    "workspaceResourceId": "[resourceId('microsoft.OperationalInsights/Workspaces', parameters('workspace'))]",
+    "dataConnectorCCPVersion": "3.2.24",
+    "_dataConnectorContentIdConnectorDefinition2": "RecordedFutureCCF",
+    "dataConnectorTemplateNameConnectorDefinition2": "[concat(parameters('workspace'),'-dc-',uniquestring(variables('_dataConnectorContentIdConnectorDefinition2')))]",
+    "_dataConnectorContentIdConnections2": "RecordedFutureCCFConnections",
+    "dataConnectorTemplateNameConnections2": "[concat(parameters('workspace'),'-dc-',uniquestring(variables('_dataConnectorContentIdConnections2')))]",
+    "dataCollectionEndpointId2": "[concat('/subscriptions/',parameters('subscription'),'/resourceGroups/',parameters('resourceGroupName'),'/providers/Microsoft.Insights/dataCollectionEndpoints/',parameters('workspace'))]",
+    "blanks": "[replace('b', 'b', '')]",
     "analyticRuleObject1": {
       "analyticRuleVersion1": "1.1.1",
       "_analyticRulecontentId1": "6db6a8e6-2959-440b-ba57-a505875fcb37",
@@ -172,7 +194,6 @@
     "_playbookContentId1": "[variables('playbookContentId1')]",
     "playbookId1": "[resourceId('Microsoft.Logic/workflows', variables('playbookContentId1'))]",
     "playbookTemplateSpecName1": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat(parameters('workspace'),'-pl-',uniquestring(variables('_playbookContentId1'))))]",
-    "workspaceResourceId": "[resourceId('microsoft.OperationalInsights/Workspaces', parameters('workspace'))]",
     "_playbookcontentProductId1": "[concat(take(variables('_solutionId'),50),'-','pl','-', uniqueString(concat(variables('_solutionId'),'-','Playbook','-',variables('_playbookContentId1'),'-', variables('playbookVersion1'))))]",
     "RecordedFuture-Playbook-Alert-Importer": "RecordedFuture-Playbook-Alert-Importer",
     "_RecordedFuture-Playbook-Alert-Importer": "[variables('RecordedFuture-Playbook-Alert-Importer')]",
@@ -241,7 +262,6 @@
     "_playbookcontentProductId9": "[concat(take(variables('_solutionId'),50),'-','pl','-', uniqueString(concat(variables('_solutionId'),'-','Playbook','-',variables('_playbookContentId9'),'-', variables('playbookVersion9'))))]",
     "RecordedFuture-CustomConnector": "RecordedFuture-CustomConnector",
     "_RecordedFuture-CustomConnector": "[variables('RecordedFuture-CustomConnector')]",
-    "blanks": "[replace('b', 'b', '')]",
     "playbookVersion10": "1.0",
     "playbookContentId10": "RecordedFuture-CustomConnector",
     "_playbookContentId10": "[variables('playbookContentId10')]",
@@ -339,7 +359,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "Recorded Future data connector with template version 3.2.23",
+        "description": "Recorded Future data connector with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('dataConnectorVersion1')]",
@@ -693,13 +713,1093 @@
     {
       "type": "Microsoft.OperationalInsights/workspaces/providers/contentTemplates",
       "apiVersion": "2023-04-01-preview",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/', variables('dataConnectorTemplateNameConnectorDefinition2'), variables('dataConnectorCCPVersion'))]",
+      "location": "[parameters('workspace-location')]",
+      "dependsOn": [
+        "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
+      ],
+      "properties": {
+        "contentId": "[variables('_dataConnectorContentIdConnectorDefinition2')]",
+        "displayName": "Recorded Future (via Codeless Connector Framework)",
+        "contentKind": "DataConnector",
+        "mainTemplate": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "[variables('dataConnectorCCPVersion')]",
+          "parameters": {},
+          "variables": {},
+          "resources": [
+            {
+              "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',variables('_dataConnectorContentIdConnectorDefinition2'))]",
+              "apiVersion": "2022-09-01-preview",
+              "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectorDefinitions",
+              "location": "[parameters('workspace-location')]",
+              "kind": "Customizable",
+              "properties": {
+                "connectorUiConfig": {
+                  "id": "RecordedFutureCCF",
+                  "title": "Recorded Future (via Codeless Connector Framework)",
+                  "publisher": "Recorded Future",
+                  "descriptionMarkdown": "Imports [Recorded Future](https://www.recordedfuture.com/) data into Microsoft Sentinel using the Codeless Connector Framework (CCF). Pick the data types to import when adding a connection.\n\n**Playbook Alerts**: imports [Recorded Future Playbook Alerts](https://support.recordedfuture.com/hc/en-us/articles/13152506878739-Playbook-Alerting-Rules) hourly into the `RecordedFuturePlaybookAlerts_V2_CL` table, optionally filtered by category, priority and status. Replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App.",
+                  "graphQueriesTableName": "RecordedFuturePlaybookAlerts_V2_CL",
+                  "graphQueries": [
+                    {
+                      "metricName": "Total playbook alerts received",
+                      "legend": "RecordedFuturePlaybookAlerts_V2_CL",
+                      "baseQuery": "{{graphQueriesTableName}}"
+                    }
+                  ],
+                  "sampleQueries": [
+                    {
+                      "description": "Recent playbook alerts",
+                      "query": "RecordedFuturePlaybookAlerts_V2_CL\n| sort by TimeGenerated desc"
+                    },
+                    {
+                      "description": "Latest state of each playbook alert",
+                      "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(updated_date, *) by id"
+                    },
+                    {
+                      "description": "Playbook alerts without duplicates (one row per alert update)",
+                      "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(TimeGenerated, *) by id, updated_date"
+                    }
+                  ],
+                  "dataTypes": [
+                    {
+                      "name": "RecordedFuturePlaybookAlerts_V2_CL",
+                      "lastDataReceivedQuery": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize Time = max(TimeGenerated)\n| where isnotempty(Time)"
+                    }
+                  ],
+                  "connectivityCriteria": [
+                    {
+                      "type": "HasDataConnectors"
+                    }
+                  ],
+                  "availability": {
+                    "isPreview": true,
+                    "status": 1
+                  },
+                  "permissions": {
+                    "resourceProvider": [
+                      {
+                        "provider": "Microsoft.OperationalInsights/workspaces",
+                        "permissionsDisplayText": "Read and Write permissions are required.",
+                        "providerDisplayName": "Workspace",
+                        "scope": "Workspace",
+                        "requiredPermissions": {
+                          "write": true,
+                          "read": true,
+                          "delete": true
+                        }
+                      }
+                    ],
+                    "customs": [
+                      {
+                        "name": "Recorded Future API Token",
+                        "description": "A Recorded Future API token with access to the selected data types (e.g. Playbook Alerts)."
+                      },
+                      {
+                        "name": "Azure roles",
+                        "description": "**Install** the solution (data collection rule `RecordedFutureCCFDCR` and table `RecordedFuturePlaybookAlerts_V2_CL`): **Contributor**, or **Monitoring Contributor** and **Log Analytics Contributor**, on the workspace's resource group. **Add connection**, then **Connect** (creates a Microsoft Sentinel data connector in the workspace): **Microsoft Sentinel Contributor** on the workspace. No role assignments are created."
+                      }
+                    ]
+                  },
+                  "instructionSteps": [
+                    {
+                      "title": "1. Disable the Logic App importer",
+                      "description": "If the `RecordedFuture-Playbook-Alert-Importer` Logic App is running, disable it before adding a Playbook Alerts connection, otherwise alerts are imported twice."
+                    },
+                    {
+                      "title": "2. Add a connection",
+                      "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick one data type and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
+                      "instructions": [
+                        {
+                          "type": "DataConnectorsGrid",
+                          "parameters": {
+                            "mapping": [
+                              {
+                                "columnName": "Name",
+                                "columnValue": "properties.addOnAttributes.friendlyName"
+                              },
+                              {
+                                "columnName": "Data type",
+                                "columnValue": "properties.addOnAttributes.dataType"
+                              },
+                              {
+                                "columnName": "Filters",
+                                "columnValue": "properties.addOnAttributes.filters"
+                              }
+                            ],
+                            "menuItems": [
+                              "DeleteConnector"
+                            ]
+                          }
+                        },
+                        {
+                          "type": "ContextPane",
+                          "parameters": {
+                            "label": "Add connection",
+                            "title": "Add Recorded Future connection",
+                            "subtitle": "Import Recorded Future data",
+                            "contextPaneType": "DataConnectorsContextPane",
+                            "isPrimary": true,
+                            "instructionSteps": [
+                              {
+                                "instructions": [
+                                  {
+                                    "type": "Textbox",
+                                    "parameters": {
+                                      "label": "Connection name",
+                                      "placeholder": "e.g. All playbook alerts",
+                                      "type": "text",
+                                      "name": "friendlyName",
+                                      "validations": {
+                                        "required": true
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "InfoMessage",
+                                    "parameters": {
+                                      "text": "Adding or replacing a connection requires the **Microsoft Sentinel Contributor** role on the workspace (or Contributor on its resource group). Without it, Connect fails with a permissions error.",
+                                      "visible": true,
+                                      "inline": true
+                                    }
+                                  },
+                                  {
+                                    "type": "InfoMessage",
+                                    "parameters": {
+                                      "text": "Each connection imports one data type; add one connection per data type. Re-adding a connection with the same name replaces it (settings can't be edited in place). Connections of the same data type with overlapping filters ingest the same alerts twice; one connection is usually enough. Empty filters = all.",
+                                      "visible": true,
+                                      "inline": true
+                                    }
+                                  },
+                                  {
+                                    "type": "Markdown",
+                                    "parameters": {
+                                      "content": "## Recorded Future API\n\nEnter your Recorded Future API token."
+                                    }
+                                  },
+                                  {
+                                    "type": "Textbox",
+                                    "parameters": {
+                                      "label": "API Token",
+                                      "placeholder": "Recorded Future API token",
+                                      "type": "password",
+                                      "name": "apiKey",
+                                      "validations": {
+                                        "required": true
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "Markdown",
+                                    "parameters": {
+                                      "content": "## Data type\n\nChoose the Recorded Future data this connection imports (one data type per connection)."
+                                    }
+                                  },
+                                  {
+                                    "type": "Dropdown",
+                                    "parameters": {
+                                      "label": "Data type",
+                                      "name": "dataTypes",
+                                      "options": [
+                                        {
+                                          "key": "PlaybookAlerts",
+                                          "text": "Playbook Alerts (RecordedFuturePlaybookAlerts_V2_CL)"
+                                        }
+                                      ],
+                                      "placeholder": "Select a data type",
+                                      "isMultiSelect": false,
+                                      "required": true,
+                                      "defaultAllSelected": true
+                                    }
+                                  },
+                                  {
+                                    "type": "Markdown",
+                                    "parameters": {
+                                      "content": "## Playbook Alerts filters\n\nOptional. Leave a filter empty to import all values."
+                                    }
+                                  },
+                                  {
+                                    "type": "Dropdown",
+                                    "parameters": {
+                                      "label": "Categories (optional)",
+                                      "name": "categories",
+                                      "options": [
+                                        {
+                                          "key": "code_repo_leakage",
+                                          "text": "code_repo_leakage"
+                                        },
+                                        {
+                                          "key": "cyber_vulnerability",
+                                          "text": "cyber_vulnerability"
+                                        },
+                                        {
+                                          "key": "dark_web",
+                                          "text": "dark_web"
+                                        },
+                                        {
+                                          "key": "domain_abuse",
+                                          "text": "domain_abuse"
+                                        },
+                                        {
+                                          "key": "identity_novel_exposures",
+                                          "text": "identity_novel_exposures"
+                                        },
+                                        {
+                                          "key": "malicious_sites",
+                                          "text": "malicious_sites"
+                                        },
+                                        {
+                                          "key": "socmed_impersonation",
+                                          "text": "socmed_impersonation"
+                                        },
+                                        {
+                                          "key": "third_party_risk",
+                                          "text": "third_party_risk"
+                                        }
+                                      ],
+                                      "placeholder": "All categories",
+                                      "isMultiSelect": true,
+                                      "required": false,
+                                      "defaultAllSelected": false
+                                    }
+                                  },
+                                  {
+                                    "type": "InfoMessage",
+                                    "parameters": {
+                                      "text": "Playbook alert categories to import. Empty imports all categories.",
+                                      "visible": true,
+                                      "inline": true
+                                    }
+                                  },
+                                  {
+                                    "type": "Dropdown",
+                                    "parameters": {
+                                      "label": "Priorities (optional)",
+                                      "name": "priorities",
+                                      "options": [
+                                        {
+                                          "key": "High",
+                                          "text": "High"
+                                        },
+                                        {
+                                          "key": "Moderate",
+                                          "text": "Moderate"
+                                        },
+                                        {
+                                          "key": "Informational",
+                                          "text": "Informational"
+                                        }
+                                      ],
+                                      "placeholder": "All priorities",
+                                      "isMultiSelect": true,
+                                      "required": false,
+                                      "defaultAllSelected": false
+                                    }
+                                  },
+                                  {
+                                    "type": "InfoMessage",
+                                    "parameters": {
+                                      "text": "Playbook alert priorities to import. Empty imports all priorities.",
+                                      "visible": true,
+                                      "inline": true
+                                    }
+                                  },
+                                  {
+                                    "type": "Dropdown",
+                                    "parameters": {
+                                      "label": "Statuses (optional)",
+                                      "name": "statuses",
+                                      "options": [
+                                        {
+                                          "key": "New",
+                                          "text": "New"
+                                        },
+                                        {
+                                          "key": "InProgress",
+                                          "text": "In Progress"
+                                        },
+                                        {
+                                          "key": "Dismissed",
+                                          "text": "Dismissed"
+                                        },
+                                        {
+                                          "key": "Resolved",
+                                          "text": "Resolved"
+                                        }
+                                      ],
+                                      "placeholder": "All statuses",
+                                      "isMultiSelect": true,
+                                      "required": false,
+                                      "defaultAllSelected": false
+                                    }
+                                  },
+                                  {
+                                    "type": "InfoMessage",
+                                    "parameters": {
+                                      "text": "Playbook alert statuses to import. Empty imports all statuses.",
+                                      "visible": true,
+                                      "inline": true
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat('DataConnector-', variables('_dataConnectorContentIdConnectorDefinition2')))]",
+              "apiVersion": "2022-01-01-preview",
+              "type": "Microsoft.OperationalInsights/workspaces/providers/metadata",
+              "properties": {
+                "parentId": "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/dataConnectorDefinitions', variables('_dataConnectorContentIdConnectorDefinition2'))]",
+                "contentId": "[variables('_dataConnectorContentIdConnectorDefinition2')]",
+                "kind": "DataConnector",
+                "version": "[variables('dataConnectorCCPVersion')]",
+                "source": {
+                  "sourceId": "[variables('_solutionId')]",
+                  "name": "[variables('_solutionName')]",
+                  "kind": "Solution"
+                },
+                "author": {
+                  "name": "Recorded Future Premier Integrations",
+                  "email": "[variables('_email')]"
+                },
+                "support": {
+                  "name": "Recorded Future Support Team",
+                  "email": "support@recordedfuture.com",
+                  "tier": "Partner",
+                  "link": "http://support.recordedfuture.com/"
+                },
+                "dependencies": {
+                  "criteria": [
+                    {
+                      "version": "[variables('dataConnectorCCPVersion')]",
+                      "contentId": "[variables('_dataConnectorContentIdConnections2')]",
+                      "kind": "ResourcesDataConnector"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "RecordedFutureCCFDCR",
+              "apiVersion": "2022-06-01",
+              "type": "Microsoft.Insights/dataCollectionRules",
+              "location": "[parameters('workspace-location')]",
+              "kind": "[variables('blanks')]",
+              "properties": {
+                "dataCollectionEndpointId": "[variables('dataCollectionEndpointId2')]",
+                "streamDeclarations": {
+                  "Custom-RecordedFuturePlaybookAlerts_V2_CL": {
+                    "columns": [
+                      {
+                        "name": "TimeGenerated",
+                        "type": "datetime"
+                      },
+                      {
+                        "name": "alert_title",
+                        "type": "string"
+                      },
+                      {
+                        "name": "id",
+                        "type": "string"
+                      },
+                      {
+                        "name": "category",
+                        "type": "string"
+                      },
+                      {
+                        "name": "rule_label",
+                        "type": "string"
+                      },
+                      {
+                        "name": "status",
+                        "type": "string"
+                      },
+                      {
+                        "name": "priority",
+                        "type": "string"
+                      },
+                      {
+                        "name": "created_date",
+                        "type": "datetime"
+                      },
+                      {
+                        "name": "updated_date",
+                        "type": "datetime"
+                      },
+                      {
+                        "name": "targets",
+                        "type": "string"
+                      },
+                      {
+                        "name": "evidence_summary",
+                        "type": "string"
+                      },
+                      {
+                        "name": "alert_description",
+                        "type": "string"
+                      },
+                      {
+                        "name": "link",
+                        "type": "string"
+                      },
+                      {
+                        "name": "owner_organisation_details",
+                        "type": "dynamic"
+                      }
+                    ]
+                  }
+                },
+                "destinations": {
+                  "logAnalytics": [
+                    {
+                      "workspaceResourceId": "[variables('workspaceResourceId')]",
+                      "name": "workspace"
+                    }
+                  ]
+                },
+                "dataFlows": [
+                  {
+                    "streams": [
+                      "Custom-RecordedFuturePlaybookAlerts_V2_CL"
+                    ],
+                    "destinations": [
+                      "workspace"
+                    ],
+                    "transformKql": "source | project TimeGenerated = datetime(null), alert_title = tostring(alert_title), id = tostring(id), category = tostring(category), rule_label = tostring(rule_label), status = tostring(status), priority = tostring(priority), created_date = todatetime(created_date), updated_date = todatetime(updated_date), targets = tostring(targets), evidence_summary = tostring(evidence_summary), alert_description = tostring(alert_description), link = tostring(link), owner_organisation_details = todynamic(tostring(owner_organisation_details))",
+                    "outputStream": "Custom-RecordedFuturePlaybookAlerts_V2_CL"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "RecordedFuturePlaybookAlerts_V2_CL",
+              "apiVersion": "2022-10-01",
+              "type": "Microsoft.OperationalInsights/workspaces/tables",
+              "location": "[parameters('workspace-location')]",
+              "kind": null,
+              "properties": {
+                "schema": {
+                  "name": "RecordedFuturePlaybookAlerts_V2_CL",
+                  "columns": [
+                    {
+                      "name": "TimeGenerated",
+                      "type": "datetime"
+                    },
+                    {
+                      "name": "alert_title",
+                      "type": "string"
+                    },
+                    {
+                      "name": "id",
+                      "type": "string"
+                    },
+                    {
+                      "name": "category",
+                      "type": "string"
+                    },
+                    {
+                      "name": "rule_label",
+                      "type": "string"
+                    },
+                    {
+                      "name": "status",
+                      "type": "string"
+                    },
+                    {
+                      "name": "priority",
+                      "type": "string"
+                    },
+                    {
+                      "name": "created_date",
+                      "type": "datetime"
+                    },
+                    {
+                      "name": "updated_date",
+                      "type": "datetime"
+                    },
+                    {
+                      "name": "targets",
+                      "type": "string"
+                    },
+                    {
+                      "name": "evidence_summary",
+                      "type": "string"
+                    },
+                    {
+                      "name": "alert_description",
+                      "type": "string"
+                    },
+                    {
+                      "name": "link",
+                      "type": "string"
+                    },
+                    {
+                      "name": "owner_organisation_details",
+                      "type": "dynamic"
+                    }
+                  ]
+                },
+                "retentionInDays": 90,
+                "plan": "Analytics"
+              }
+            }
+          ]
+        },
+        "packageKind": "Solution",
+        "packageVersion": "[variables('_solutionVersion')]",
+        "packageName": "[variables('_solutionName')]",
+        "contentProductId": "[concat(take(variables('_solutionId'), 50),'-','dc','-', uniqueString(concat(variables('_solutionId'),'-','DataConnector','-',variables('_dataConnectorContentIdConnectorDefinition2'),'-', variables('dataConnectorCCPVersion'))))]",
+        "packageId": "[variables('_solutionId')]",
+        "contentSchemaVersion": "3.0.0",
+        "version": "[variables('dataConnectorCCPVersion')]"
+      }
+    },
+    {
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',variables('_dataConnectorContentIdConnectorDefinition2'))]",
+      "apiVersion": "2022-09-01-preview",
+      "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectorDefinitions",
+      "location": "[parameters('workspace-location')]",
+      "kind": "Customizable",
+      "properties": {
+        "connectorUiConfig": {
+          "id": "RecordedFutureCCF",
+          "title": "Recorded Future (via Codeless Connector Framework)",
+          "publisher": "Recorded Future",
+          "descriptionMarkdown": "Imports [Recorded Future](https://www.recordedfuture.com/) data into Microsoft Sentinel using the Codeless Connector Framework (CCF). Pick the data types to import when adding a connection.\n\n**Playbook Alerts**: imports [Recorded Future Playbook Alerts](https://support.recordedfuture.com/hc/en-us/articles/13152506878739-Playbook-Alerting-Rules) hourly into the `RecordedFuturePlaybookAlerts_V2_CL` table, optionally filtered by category, priority and status. Replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App.",
+          "graphQueriesTableName": "RecordedFuturePlaybookAlerts_V2_CL",
+          "graphQueries": [
+            {
+              "metricName": "Total playbook alerts received",
+              "legend": "RecordedFuturePlaybookAlerts_V2_CL",
+              "baseQuery": "{{graphQueriesTableName}}"
+            }
+          ],
+          "sampleQueries": [
+            {
+              "description": "Recent playbook alerts",
+              "query": "RecordedFuturePlaybookAlerts_V2_CL\n| sort by TimeGenerated desc"
+            },
+            {
+              "description": "Latest state of each playbook alert",
+              "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(updated_date, *) by id"
+            },
+            {
+              "description": "Playbook alerts without duplicates (one row per alert update)",
+              "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(TimeGenerated, *) by id, updated_date"
+            }
+          ],
+          "dataTypes": [
+            {
+              "name": "RecordedFuturePlaybookAlerts_V2_CL",
+              "lastDataReceivedQuery": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize Time = max(TimeGenerated)\n| where isnotempty(Time)"
+            }
+          ],
+          "connectivityCriteria": [
+            {
+              "type": "HasDataConnectors"
+            }
+          ],
+          "availability": {
+            "isPreview": true,
+            "status": 1
+          },
+          "permissions": {
+            "resourceProvider": [
+              {
+                "provider": "Microsoft.OperationalInsights/workspaces",
+                "permissionsDisplayText": "Read and Write permissions are required.",
+                "providerDisplayName": "Workspace",
+                "scope": "Workspace",
+                "requiredPermissions": {
+                  "write": true,
+                  "read": true,
+                  "delete": true
+                }
+              }
+            ],
+            "customs": [
+              {
+                "name": "Recorded Future API Token",
+                "description": "A Recorded Future API token with access to the selected data types (e.g. Playbook Alerts)."
+              },
+              {
+                "name": "Azure roles",
+                "description": "**Install** the solution (data collection rule `RecordedFutureCCFDCR` and table `RecordedFuturePlaybookAlerts_V2_CL`): **Contributor**, or **Monitoring Contributor** and **Log Analytics Contributor**, on the workspace's resource group. **Add connection**, then **Connect** (creates a Microsoft Sentinel data connector in the workspace): **Microsoft Sentinel Contributor** on the workspace. No role assignments are created."
+              }
+            ]
+          },
+          "instructionSteps": [
+            {
+              "title": "1. Disable the Logic App importer",
+              "description": "If the `RecordedFuture-Playbook-Alert-Importer` Logic App is running, disable it before adding a Playbook Alerts connection, otherwise alerts are imported twice."
+            },
+            {
+              "title": "2. Add a connection",
+              "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick one data type and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
+              "instructions": [
+                {
+                  "type": "DataConnectorsGrid",
+                  "parameters": {
+                    "mapping": [
+                      {
+                        "columnName": "Name",
+                        "columnValue": "properties.addOnAttributes.friendlyName"
+                      },
+                      {
+                        "columnName": "Data type",
+                        "columnValue": "properties.addOnAttributes.dataType"
+                      },
+                      {
+                        "columnName": "Filters",
+                        "columnValue": "properties.addOnAttributes.filters"
+                      }
+                    ],
+                    "menuItems": [
+                      "DeleteConnector"
+                    ]
+                  }
+                },
+                {
+                  "type": "ContextPane",
+                  "parameters": {
+                    "label": "Add connection",
+                    "title": "Add Recorded Future connection",
+                    "subtitle": "Import Recorded Future data",
+                    "contextPaneType": "DataConnectorsContextPane",
+                    "isPrimary": true,
+                    "instructionSteps": [
+                      {
+                        "instructions": [
+                          {
+                            "type": "Textbox",
+                            "parameters": {
+                              "label": "Connection name",
+                              "placeholder": "e.g. All playbook alerts",
+                              "type": "text",
+                              "name": "friendlyName",
+                              "validations": {
+                                "required": true
+                              }
+                            }
+                          },
+                          {
+                            "type": "InfoMessage",
+                            "parameters": {
+                              "text": "Adding or replacing a connection requires the **Microsoft Sentinel Contributor** role on the workspace (or Contributor on its resource group). Without it, Connect fails with a permissions error.",
+                              "visible": true,
+                              "inline": true
+                            }
+                          },
+                          {
+                            "type": "InfoMessage",
+                            "parameters": {
+                              "text": "Each connection imports one data type; add one connection per data type. Re-adding a connection with the same name replaces it (settings can't be edited in place). Connections of the same data type with overlapping filters ingest the same alerts twice; one connection is usually enough. Empty filters = all.",
+                              "visible": true,
+                              "inline": true
+                            }
+                          },
+                          {
+                            "type": "Markdown",
+                            "parameters": {
+                              "content": "## Recorded Future API\n\nEnter your Recorded Future API token."
+                            }
+                          },
+                          {
+                            "type": "Textbox",
+                            "parameters": {
+                              "label": "API Token",
+                              "placeholder": "Recorded Future API token",
+                              "type": "password",
+                              "name": "apiKey",
+                              "validations": {
+                                "required": true
+                              }
+                            }
+                          },
+                          {
+                            "type": "Markdown",
+                            "parameters": {
+                              "content": "## Data type\n\nChoose the Recorded Future data this connection imports (one data type per connection)."
+                            }
+                          },
+                          {
+                            "type": "Dropdown",
+                            "parameters": {
+                              "label": "Data type",
+                              "name": "dataTypes",
+                              "options": [
+                                {
+                                  "key": "PlaybookAlerts",
+                                  "text": "Playbook Alerts (RecordedFuturePlaybookAlerts_V2_CL)"
+                                }
+                              ],
+                              "placeholder": "Select a data type",
+                              "isMultiSelect": false,
+                              "required": true,
+                              "defaultAllSelected": true
+                            }
+                          },
+                          {
+                            "type": "Markdown",
+                            "parameters": {
+                              "content": "## Playbook Alerts filters\n\nOptional. Leave a filter empty to import all values."
+                            }
+                          },
+                          {
+                            "type": "Dropdown",
+                            "parameters": {
+                              "label": "Categories (optional)",
+                              "name": "categories",
+                              "options": [
+                                {
+                                  "key": "code_repo_leakage",
+                                  "text": "code_repo_leakage"
+                                },
+                                {
+                                  "key": "cyber_vulnerability",
+                                  "text": "cyber_vulnerability"
+                                },
+                                {
+                                  "key": "dark_web",
+                                  "text": "dark_web"
+                                },
+                                {
+                                  "key": "domain_abuse",
+                                  "text": "domain_abuse"
+                                },
+                                {
+                                  "key": "identity_novel_exposures",
+                                  "text": "identity_novel_exposures"
+                                },
+                                {
+                                  "key": "malicious_sites",
+                                  "text": "malicious_sites"
+                                },
+                                {
+                                  "key": "socmed_impersonation",
+                                  "text": "socmed_impersonation"
+                                },
+                                {
+                                  "key": "third_party_risk",
+                                  "text": "third_party_risk"
+                                }
+                              ],
+                              "placeholder": "All categories",
+                              "isMultiSelect": true,
+                              "required": false,
+                              "defaultAllSelected": false
+                            }
+                          },
+                          {
+                            "type": "InfoMessage",
+                            "parameters": {
+                              "text": "Playbook alert categories to import. Empty imports all categories.",
+                              "visible": true,
+                              "inline": true
+                            }
+                          },
+                          {
+                            "type": "Dropdown",
+                            "parameters": {
+                              "label": "Priorities (optional)",
+                              "name": "priorities",
+                              "options": [
+                                {
+                                  "key": "High",
+                                  "text": "High"
+                                },
+                                {
+                                  "key": "Moderate",
+                                  "text": "Moderate"
+                                },
+                                {
+                                  "key": "Informational",
+                                  "text": "Informational"
+                                }
+                              ],
+                              "placeholder": "All priorities",
+                              "isMultiSelect": true,
+                              "required": false,
+                              "defaultAllSelected": false
+                            }
+                          },
+                          {
+                            "type": "InfoMessage",
+                            "parameters": {
+                              "text": "Playbook alert priorities to import. Empty imports all priorities.",
+                              "visible": true,
+                              "inline": true
+                            }
+                          },
+                          {
+                            "type": "Dropdown",
+                            "parameters": {
+                              "label": "Statuses (optional)",
+                              "name": "statuses",
+                              "options": [
+                                {
+                                  "key": "New",
+                                  "text": "New"
+                                },
+                                {
+                                  "key": "InProgress",
+                                  "text": "In Progress"
+                                },
+                                {
+                                  "key": "Dismissed",
+                                  "text": "Dismissed"
+                                },
+                                {
+                                  "key": "Resolved",
+                                  "text": "Resolved"
+                                }
+                              ],
+                              "placeholder": "All statuses",
+                              "isMultiSelect": true,
+                              "required": false,
+                              "defaultAllSelected": false
+                            }
+                          },
+                          {
+                            "type": "InfoMessage",
+                            "parameters": {
+                              "text": "Playbook alert statuses to import. Empty imports all statuses.",
+                              "visible": true,
+                              "inline": true
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat('DataConnector-', variables('_dataConnectorContentIdConnectorDefinition2')))]",
+      "apiVersion": "2022-01-01-preview",
+      "type": "Microsoft.OperationalInsights/workspaces/providers/metadata",
+      "properties": {
+        "parentId": "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/dataConnectorDefinitions', variables('_dataConnectorContentIdConnectorDefinition2'))]",
+        "contentId": "[variables('_dataConnectorContentIdConnectorDefinition2')]",
+        "kind": "DataConnector",
+        "version": "[variables('dataConnectorCCPVersion')]",
+        "source": {
+          "sourceId": "[variables('_solutionId')]",
+          "name": "[variables('_solutionName')]",
+          "kind": "Solution"
+        },
+        "author": {
+          "name": "Recorded Future Premier Integrations",
+          "email": "[variables('_email')]"
+        },
+        "support": {
+          "name": "Recorded Future Support Team",
+          "email": "support@recordedfuture.com",
+          "tier": "Partner",
+          "link": "http://support.recordedfuture.com/"
+        },
+        "dependencies": {
+          "criteria": [
+            {
+              "version": "[variables('dataConnectorCCPVersion')]",
+              "contentId": "[variables('_dataConnectorContentIdConnections2')]",
+              "kind": "ResourcesDataConnector"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/contentTemplates",
+      "apiVersion": "2023-04-01-preview",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/', variables('dataConnectorTemplateNameConnections2'), variables('dataConnectorCCPVersion'))]",
+      "location": "[parameters('workspace-location')]",
+      "dependsOn": [
+        "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
+      ],
+      "properties": {
+        "contentId": "[variables('_dataConnectorContentIdConnections2')]",
+        "displayName": "Recorded Future (via Codeless Connector Framework)",
+        "contentKind": "ResourcesDataConnector",
+        "mainTemplate": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "[variables('dataConnectorCCPVersion')]",
+          "parameters": {
+            "guidValue": {
+              "defaultValue": "[[newGuid()]",
+              "type": "securestring"
+            },
+            "innerWorkspace": {
+              "defaultValue": "[parameters('workspace')]",
+              "type": "securestring"
+            },
+            "connectorDefinitionName": {
+              "defaultValue": "Recorded Future (via Codeless Connector Framework)",
+              "type": "securestring",
+              "minLength": 1
+            },
+            "workspace": {
+              "defaultValue": "[parameters('workspace')]",
+              "type": "securestring"
+            },
+            "dcrConfig": {
+              "defaultValue": {
+                "dataCollectionEndpoint": "data collection Endpoint",
+                "dataCollectionRuleImmutableId": "data collection rule immutableId"
+              },
+              "type": "object"
+            },
+            "friendlyName": {
+              "defaultValue": "friendlyName",
+              "type": "securestring",
+              "minLength": 1
+            },
+            "apiKey": {
+              "defaultValue": "apiKey",
+              "type": "securestring",
+              "minLength": 1
+            },
+            "dataTypes": {
+              "defaultValue": "dataTypes",
+              "type": "array"
+            },
+            "categories": {
+              "defaultValue": [],
+              "type": "array"
+            },
+            "priorities": {
+              "defaultValue": [],
+              "type": "array"
+            },
+            "statuses": {
+              "defaultValue": [],
+              "type": "array"
+            }
+          },
+          "variables": {
+            "_dataConnectorContentIdConnections2": "[variables('_dataConnectorContentIdConnections2')]"
+          },
+          "resources": [
+            {
+              "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat('DataConnector-', variables('_dataConnectorContentIdConnections2')))]",
+              "apiVersion": "2022-01-01-preview",
+              "type": "Microsoft.OperationalInsights/workspaces/providers/metadata",
+              "properties": {
+                "parentId": "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/dataConnectors', variables('_dataConnectorContentIdConnections2'))]",
+                "contentId": "[variables('_dataConnectorContentIdConnections2')]",
+                "kind": "ResourcesDataConnector",
+                "version": "[variables('dataConnectorCCPVersion')]",
+                "source": {
+                  "sourceId": "[variables('_solutionId')]",
+                  "name": "[variables('_solutionName')]",
+                  "kind": "Solution"
+                },
+                "author": {
+                  "name": "Recorded Future Premier Integrations",
+                  "email": "[variables('_email')]"
+                },
+                "support": {
+                  "name": "Recorded Future Support Team",
+                  "email": "support@recordedfuture.com",
+                  "tier": "Partner",
+                  "link": "http://support.recordedfuture.com/"
+                }
+              }
+            },
+            {
+              "name": "[[concat(parameters('innerWorkspace'),'/Microsoft.SecurityInsights/', 'RecordedFuturePBA', uniqueString(parameters('friendlyName')))]",
+              "apiVersion": "2023-02-01-preview",
+              "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
+              "location": "[parameters('workspace-location')]",
+              "kind": "RestApiPoller",
+              "properties": {
+                "connectorDefinitionName": "RecordedFutureCCF",
+                "dataType": "RecordedFuturePlaybookAlerts_V2_CL",
+                "dcrConfig": {
+                  "streamName": "Custom-RecordedFuturePlaybookAlerts_V2_CL",
+                  "dataCollectionEndpoint": "[[parameters('dcrConfig').dataCollectionEndpoint]",
+                  "dataCollectionRuleImmutableId": "[[parameters('dcrConfig').dataCollectionRuleImmutableId]"
+                },
+                "auth": {
+                  "type": "APIKey",
+                  "ApiKey": "[[parameters('apiKey')]",
+                  "ApiKeyName": "X-RFToken"
+                },
+                "request": {
+                  "apiEndpoint": "https://api.recordedfuture.com/gw/azure/playbook-alert/export",
+                  "httpMethod": "GET",
+                  "queryWindowInMin": 60,
+                  "queryTimeFormat": "yyyy-MM-ddTHH:mm:ssZ",
+                  "startTimeAttributeName": "updated_from",
+                  "endTimeAttributeName": "updated_until",
+                  "rateLimitQPS": 5,
+                  "retryCount": 3,
+                  "timeoutInSeconds": 120,
+                  "headers": {
+                    "Accept": "application/json",
+                    "User-Agent": "RecordedFuture-Sentinel-CCF"
+                  },
+                  "queryParameters": {
+                    "categories": "[[join(parameters('categories'), ',')]",
+                    "priorities": "[[join(parameters('priorities'), ',')]",
+                    "statuses": "[[join(parameters('statuses'), ',')]"
+                  }
+                },
+                "response": {
+                  "eventsJsonPaths": [
+                    "$.data"
+                  ],
+                  "format": "json"
+                },
+                "paging": {
+                  "pagingType": "Offset",
+                  "offsetParaName": "from",
+                  "pageSize": 25,
+                  "pageSizeParameterName": "limit"
+                },
+                "addOnAttributes": {
+                  "friendlyName": "[[parameters('friendlyName')]",
+                  "dataType": "Playbook alerts",
+                  "filters": "[[concat('Categories: ', if(empty(parameters('categories')), 'All', join(parameters('categories'), ',')), '; Priorities: ', if(empty(parameters('priorities')), 'All', join(parameters('priorities'), ',')), '; Statuses: ', if(empty(parameters('statuses')), 'All', join(parameters('statuses'), ',')))]"
+                }
+              },
+              "condition": "[[contains(parameters('dataTypes'), 'PlaybookAlerts')]"
+            }
+          ]
+        },
+        "packageKind": "Solution",
+        "packageVersion": "[variables('_solutionVersion')]",
+        "packageName": "[variables('_solutionName')]",
+        "contentProductId": "[concat(take(variables('_solutionId'), 50),'-','rdc','-', uniqueString(concat(variables('_solutionId'),'-','ResourcesDataConnector','-',variables('_dataConnectorContentIdConnections2'),'-', variables('dataConnectorCCPVersion'))))]",
+        "packageId": "[variables('_solutionId')]",
+        "contentSchemaVersion": "3.0.0",
+        "version": "[variables('dataConnectorCCPVersion')]"
+      }
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/contentTemplates",
+      "apiVersion": "2023-04-01-preview",
       "name": "[variables('analyticRuleObject1').analyticRuleTemplateSpecName1]",
       "location": "[parameters('workspace-location')]",
       "dependsOn": [
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureThreatHuntingHashAllActors_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFutureThreatHuntingHashAllActors_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject1').analyticRuleVersion1]",
@@ -747,12 +1847,12 @@
                   {
                     "fieldMappings": [
                       {
-                        "columnName": "Hash",
-                        "identifier": "Value"
+                        "identifier": "Value",
+                        "columnName": "Hash"
                       },
                       {
-                        "columnName": "HashType",
-                        "identifier": "Algorithm"
+                        "identifier": "Algorithm",
+                        "columnName": "HashType"
                       }
                     ],
                     "entityType": "FileHash"
@@ -765,23 +1865,23 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Hash}} from the {{Type}} table.\\n",
                   "alertDisplayNameFormat": "{{Description}}",
                   "alertDynamicProperties": [
                     {
-                      "alertProperty": "AlertLink",
-                      "value": "RecordedFuturePortalLink"
+                      "value": "RecordedFuturePortalLink",
+                      "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Hash}} from the {{Type}} table.\\n"
+                  ]
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
-                    "matchingMethod": "AllEntities",
-                    "enabled": true,
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false
-                  }
+                    "reopenClosedIncident": false,
+                    "matchingMethod": "AllEntities",
+                    "enabled": true
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -836,7 +1936,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureThreatHuntingIPAllActors_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFutureThreatHuntingIPAllActors_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject2').analyticRuleVersion2]",
@@ -882,8 +1982,8 @@
                   {
                     "fieldMappings": [
                       {
-                        "columnName": "NetworkIP",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "NetworkIP"
                       }
                     ],
                     "entityType": "IP"
@@ -896,23 +1996,23 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{NetworkIP}} from the {{Type}} table.\\n",
                   "alertDisplayNameFormat": "{{Description}}",
                   "alertDynamicProperties": [
                     {
-                      "alertProperty": "AlertLink",
-                      "value": "RecordedFuturePortalLink"
+                      "value": "RecordedFuturePortalLink",
+                      "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{NetworkIP}} from the {{Type}} table.\\n"
+                  ]
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
-                    "matchingMethod": "AllEntities",
-                    "enabled": true,
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false
-                  }
+                    "reopenClosedIncident": false,
+                    "matchingMethod": "AllEntities",
+                    "enabled": true
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -967,7 +2067,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureThreatHuntingDomainAllActors_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFutureThreatHuntingDomainAllActors_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject3').analyticRuleVersion3]",
@@ -1013,8 +2113,8 @@
                   {
                     "fieldMappings": [
                       {
-                        "columnName": "Domain",
-                        "identifier": "DomainName"
+                        "identifier": "DomainName",
+                        "columnName": "Domain"
                       }
                     ],
                     "entityType": "DNS"
@@ -1027,23 +2127,23 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Domain}} from the {{Type}} table.\\n",
                   "alertDisplayNameFormat": "{{Description}}",
                   "alertDynamicProperties": [
                     {
-                      "alertProperty": "AlertLink",
-                      "value": "RecordedFuturePortalLink"
+                      "value": "RecordedFuturePortalLink",
+                      "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Domain}} from the {{Type}} table.\\n"
+                  ]
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
-                    "matchingMethod": "AllEntities",
-                    "enabled": true,
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false
-                  }
+                    "reopenClosedIncident": false,
+                    "matchingMethod": "AllEntities",
+                    "enabled": true
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -1098,7 +2198,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureThreatHuntingUrlAllActors_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFutureThreatHuntingUrlAllActors_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject4').analyticRuleVersion4]",
@@ -1145,8 +2245,8 @@
                   {
                     "fieldMappings": [
                       {
-                        "columnName": "Url",
-                        "identifier": "Url"
+                        "identifier": "Url",
+                        "columnName": "Url"
                       }
                     ],
                     "entityType": "URL"
@@ -1156,23 +2256,23 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "*{{Description}}**\\n\\nCorrelation found on {{Url}} from the {{Type}} table.\\n",
                   "alertDisplayNameFormat": "{{Description}}",
                   "alertDynamicProperties": [
                     {
-                      "alertProperty": "AlertLink",
-                      "value": "RecordedFuturePortalLink"
+                      "value": "RecordedFuturePortalLink",
+                      "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDescriptionFormat": "*{{Description}}**\\n\\nCorrelation found on {{Url}} from the {{Type}} table.\\n"
+                  ]
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
-                    "matchingMethod": "AllEntities",
-                    "enabled": true,
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false
-                  }
+                    "reopenClosedIncident": false,
+                    "matchingMethod": "AllEntities",
+                    "enabled": true
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -1227,7 +2327,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureSandboxStorageAccount_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFutureSandboxStorageAccount_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject5').analyticRuleVersion5]",
@@ -1261,8 +2361,8 @@
                   {
                     "fieldMappings": [
                       {
-                        "columnName": "FileName",
-                        "identifier": "Name"
+                        "identifier": "Name",
+                        "columnName": "FileName"
                       }
                     ],
                     "entityType": "File"
@@ -1272,27 +2372,27 @@
                   "aggregationKind": "AlertPerResult"
                 },
                 "customDetails": {
+                  "SandboxVerdict": "SandboxVerdict",
+                  "Source": "Source",
                   "FileName": "FileName",
                   "SampleId": "SampleId",
-                  "Source": "Source",
-                  "SandboxScore": "SandboxScore",
-                  "SandboxVerdict": "SandboxVerdict"
+                  "SandboxScore": "SandboxScore"
                 },
                 "alertDetailsOverride": {
                   "alertDescriptionFormat": "_Recorded Future Sandbox - Malicious File in Storage Account_\n\n**Sandbox Score:** {{SandboxScore}}/100\n\n**Verdict:** {{SandboxVerdict}}\n\n**Sample ID:** {{SampleId}}\n\nA malicious file was detected in an Azure Storage Account. Investigate the source of this file and review the full sandbox report.\n",
                   "alertDisplayNameFormat": "Malicious File in Storage: {{FileName}}"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
+                    "lookbackDuration": "1h",
+                    "reopenClosedIncident": false,
                     "matchingMethod": "Selected",
                     "enabled": true,
                     "groupByCustomDetails": [
                       "SandboxVerdict"
-                    ],
-                    "lookbackDuration": "1h",
-                    "reopenClosedIncident": false
-                  }
+                    ]
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -1347,7 +2447,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureSandboxEmailAttachment_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFutureSandboxEmailAttachment_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject6').analyticRuleVersion6]",
@@ -1381,8 +2481,8 @@
                   {
                     "fieldMappings": [
                       {
-                        "columnName": "FileName",
-                        "identifier": "Name"
+                        "identifier": "Name",
+                        "columnName": "FileName"
                       }
                     ],
                     "entityType": "File"
@@ -1390,8 +2490,8 @@
                   {
                     "fieldMappings": [
                       {
-                        "columnName": "EmailFrom",
-                        "identifier": "MailboxPrimaryAddress"
+                        "identifier": "MailboxPrimaryAddress",
+                        "columnName": "EmailFrom"
                       }
                     ],
                     "entityType": "Mailbox"
@@ -1401,29 +2501,29 @@
                   "aggregationKind": "AlertPerResult"
                 },
                 "customDetails": {
+                  "EmailTo": "EmailTo",
                   "EmailFrom": "EmailFrom",
-                  "SampleId": "SampleId",
-                  "Source": "Source",
                   "FileName": "FileName",
                   "SandboxVerdict": "SandboxVerdict",
+                  "SampleId": "SampleId",
                   "SandboxScore": "SandboxScore",
-                  "EmailTo": "EmailTo"
+                  "Source": "Source"
                 },
                 "alertDetailsOverride": {
                   "alertDescriptionFormat": "_Recorded Future Sandbox - Malicious Email Attachment Detected_\n\n**Sandbox Score:** {{SandboxScore}}/100\n\n**Verdict:** {{SandboxVerdict}}\n\n**Sample ID:** {{SampleId}}\n\nA malicious file was detected in an email attachment. Review the full sandbox report and investigate the sender.\n",
                   "alertDisplayNameFormat": "Malicious Email Attachment: {{FileName}} from {{EmailFrom}}"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
+                    "lookbackDuration": "1h",
+                    "reopenClosedIncident": false,
                     "matchingMethod": "Selected",
                     "enabled": true,
                     "groupByCustomDetails": [
                       "EmailFrom"
-                    ],
-                    "lookbackDuration": "1h",
-                    "reopenClosedIncident": false
-                  }
+                    ]
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -1478,7 +2578,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureAlerts_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFutureAlerts_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject7').analyticRuleVersion7]",
@@ -1512,30 +2612,30 @@
                   "aggregationKind": "AlertPerResult"
                 },
                 "customDetails": {
-                  "RuleName": "RuleName",
-                  "RuleId": "RuleId"
+                  "RuleId": "RuleId",
+                  "RuleName": "RuleName"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nAlertID:\n{{AlertID}}\n\nTriggered: {{Triggered}}\n\nAI Summary: {{AISummary}}\n",
                   "alertDisplayNameFormat": "Alert: {{AlertName}}",
                   "alertDynamicProperties": [
                     {
-                      "alertProperty": "AlertLink",
-                      "value": "URL"
+                      "value": "URL",
+                      "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nAlertID:\n{{AlertID}}\n\nTriggered: {{Triggered}}\n\nAI Summary: {{AISummary}}\n"
+                  ]
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
+                    "lookbackDuration": "1h",
+                    "reopenClosedIncident": false,
                     "matchingMethod": "Selected",
                     "enabled": true,
                     "groupByCustomDetails": [
                       "RuleId"
-                    ],
-                    "lookbackDuration": "1h",
-                    "reopenClosedIncident": false
-                  }
+                    ]
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -1590,7 +2690,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuturePlaybookAlerts_AnalyticalRules Analytics Rule with template version 3.2.23",
+        "description": "RecordedFuturePlaybookAlerts_AnalyticalRules Analytics Rule with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject8').analyticRuleVersion8]",
@@ -1627,26 +2727,26 @@
                   "Category": "category"
                 },
                 "alertDetailsOverride": {
+                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nEvidence Summary:\n{{alert_description}}\n\nPriority: {{priority}}\n\nRecorded Future Playbook Alert ID\n{{id}}\n",
                   "alertDisplayNameFormat": "Alert: {{rule_label}}  - {{alert_title}}",
                   "alertDynamicProperties": [
                     {
-                      "alertProperty": "AlertLink",
-                      "value": "link"
+                      "value": "link",
+                      "alertProperty": "AlertLink"
                     }
-                  ],
-                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nEvidence Summary:\n{{alert_description}}\n\nPriority: {{priority}}\n\nRecorded Future Playbook Alert ID\n{{id}}\n"
+                  ]
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
+                    "lookbackDuration": "1h",
+                    "reopenClosedIncident": false,
                     "matchingMethod": "Selected",
                     "enabled": true,
                     "groupByCustomDetails": [
                       "Category"
-                    ],
-                    "lookbackDuration": "1h",
-                    "reopenClosedIncident": false
-                  }
+                    ]
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -1701,7 +2801,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-IOC_Enrichment Playbook with template version 3.2.23",
+        "description": "RecordedFuture-IOC_Enrichment Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion1')]",
@@ -2367,7 +3467,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-Playbook-Alert-Importer Playbook with template version 3.2.23",
+        "description": "RecordedFuture-Playbook-Alert-Importer Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion2')]",
@@ -2712,7 +3812,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-AlertImporter Playbook with template version 3.2.23",
+        "description": "RecordedFuture-AlertImporter Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion3')]",
@@ -3163,7 +4263,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-ThreatIntelligenceImport Playbook with template version 3.2.23",
+        "description": "RecordedFuture-ThreatIntelligenceImport Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion4')]",
@@ -3392,7 +4492,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-Domain-IndicatorImport Playbook with template version 3.2.23",
+        "description": "RecordedFuture-Domain-IndicatorImport Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion5')]",
@@ -3710,7 +4810,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-Hash-IndicatorImport Playbook with template version 3.2.23",
+        "description": "RecordedFuture-Hash-IndicatorImport Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion6')]",
@@ -4028,7 +5128,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-IP-IndicatorImport Playbook with template version 3.2.23",
+        "description": "RecordedFuture-IP-IndicatorImport Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion7')]",
@@ -4348,7 +5448,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-URL-IndicatorImport Playbook with template version 3.2.23",
+        "description": "RecordedFuture-URL-IndicatorImport Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion8')]",
@@ -4666,7 +5766,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-Sandbox_Enrichment-Url Playbook with template version 3.2.23",
+        "description": "RecordedFuture-Sandbox_Enrichment-Url Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion9')]",
@@ -5102,7 +6202,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-CustomConnector Playbook with template version 3.2.23",
+        "description": "RecordedFuture-CustomConnector Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion10')]",
@@ -7730,7 +8830,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-ThreatMap-Importer Playbook with template version 3.2.23",
+        "description": "RecordedFuture-ThreatMap-Importer Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion11')]",
@@ -8160,7 +9260,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuture-MalwareThreatMap-Importer Playbook with template version 3.2.23",
+        "description": "RecordedFuture-MalwareThreatMap-Importer Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion12')]",
@@ -8577,7 +9677,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "ActorThreatHunt-IndicatorImport Playbook with template version 3.2.23",
+        "description": "ActorThreatHunt-IndicatorImport Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion13')]",
@@ -8813,7 +9913,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "MalwareThreatHunt-IndicatorImport Playbook with template version 3.2.23",
+        "description": "MalwareThreatHunt-IndicatorImport Playbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('playbookVersion14')]",
@@ -9050,7 +10150,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFuturePlaybookAlertOverview Workbook with template version 3.2.23",
+        "description": "RecordedFuturePlaybookAlertOverview Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion1')]",
@@ -9134,7 +10234,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureAlertOverview Workbook with template version 3.2.23",
+        "description": "RecordedFutureAlertOverview Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion2')]",
@@ -9218,7 +10318,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureDomainCorrelation Workbook with template version 3.2.23",
+        "description": "RecordedFutureDomainCorrelation Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion3')]",
@@ -9302,7 +10402,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureHashCorrelation Workbook with template version 3.2.23",
+        "description": "RecordedFutureHashCorrelation Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion4')]",
@@ -9386,7 +10486,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureIPCorrelation Workbook with template version 3.2.23",
+        "description": "RecordedFutureIPCorrelation Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion5')]",
@@ -9470,7 +10570,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureURLCorrelation Workbook with template version 3.2.23",
+        "description": "RecordedFutureURLCorrelation Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion6')]",
@@ -9554,7 +10654,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureThreatActorHunting Workbook with template version 3.2.23",
+        "description": "RecordedFutureThreatActorHunting Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion7')]",
@@ -9638,7 +10738,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "RecordedFutureMalwareThreatHunting Workbook with template version 3.2.23",
+        "description": "RecordedFutureMalwareThreatHunting Workbook with template version 3.2.24",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion8')]",
@@ -9718,12 +10818,12 @@
       "apiVersion": "2023-04-01-preview",
       "location": "[parameters('workspace-location')]",
       "properties": {
-        "version": "3.2.23",
+        "version": "3.2.24",
         "kind": "Solution",
         "contentSchemaVersion": "3.0.0",
         "displayName": "Recorded Future",
         "publisherDisplayName": "Recorded Future Support Team",
-        "descriptionHtml": "<p><strong>Note:</strong> Please refer to the following before installing the solution:</p>\n<p>• Review the solution <a href=\"https://github.com/Azure/Azure-Sentinel/tree/master/Solutions/Recorded%20Future/ReleaseNotes.md\">Release Notes</a></p>\n<p>• There may be <a href=\"https://aka.ms/sentinelsolutionsknownissues\">known issues</a> pertaining to this Solution, please refer to them before installing.</p>\n<p><a href=\"https://www.recordedfuture.com/\">Recorded Future</a> is the worlds largest provider of intelligence for enterprise security. By combining persistent and pervasive automated data collection and analytics with human analysis, Recorded Future delivers intelligence that is timely, accurate, and actionable.</p>\n<p>Underlying Microsoft Technologies used:\nThis solution depends on underlying Microsoft technologies. Some of these dependencies either may be in Preview state or might result in additional ingestion or operational costs:</p>\n<ul>\n<li><a href=\"https://learn.microsoft.com/en-us/azure/azure-monitor/logs/workspace-design\">Log Analytics</a></li>\n<li><a href=\"https://learn.microsoft.com/en-us/azure/logic-apps/logic-apps-pricing\">Logic apps</a></li>\n<li><a href=\"https://learn.microsoft.com/en-us/azure/sentinel/upload-indicators-api\">Threat Indicators</a></li>\n</ul>\n<p><strong>Data Connectors:</strong> 1, <strong>Workbooks:</strong> 8, <strong>Analytic Rules:</strong> 8, <strong>Custom Azure Logic Apps Connectors:</strong> 1, <strong>Playbooks:</strong> 13</p>\n<p><a href=\"https://aka.ms/azuresentinel\">Learn more about Microsoft Sentinel</a> | <a href=\"https://aka.ms/azuresentinelsolutionsdoc\">Learn more about Solutions</a></p>\n",
+        "descriptionHtml": "<p><strong>Note:</strong> Please refer to the following before installing the solution:</p>\n<p>• Review the solution <a href=\"https://github.com/Azure/Azure-Sentinel/tree/master/Solutions/Recorded%20Future/ReleaseNotes.md\">Release Notes</a></p>\n<p>• There may be <a href=\"https://aka.ms/sentinelsolutionsknownissues\">known issues</a> pertaining to this Solution, please refer to them before installing.</p>\n<p><a href=\"https://www.recordedfuture.com/\">Recorded Future</a> is the worlds largest provider of intelligence for enterprise security. By combining persistent and pervasive automated data collection and analytics with human analysis, Recorded Future delivers intelligence that is timely, accurate, and actionable.</p>\n<p>Underlying Microsoft Technologies used:\nThis solution depends on underlying Microsoft technologies. Some of these dependencies either may be in Preview state or might result in additional ingestion or operational costs:</p>\n<ul>\n<li><a href=\"https://learn.microsoft.com/en-us/azure/azure-monitor/logs/workspace-design\">Log Analytics</a></li>\n<li><a href=\"https://learn.microsoft.com/en-us/azure/logic-apps/logic-apps-pricing\">Logic apps</a></li>\n<li><a href=\"https://learn.microsoft.com/en-us/azure/sentinel/upload-indicators-api\">Threat Indicators</a></li>\n</ul>\n<p><strong>Data Connectors:</strong> 2, <strong>Workbooks:</strong> 8, <strong>Analytic Rules:</strong> 8, <strong>Custom Azure Logic Apps Connectors:</strong> 1, <strong>Playbooks:</strong> 13</p>\n<p><a href=\"https://aka.ms/azuresentinel\">Learn more about Microsoft Sentinel</a> | <a href=\"https://aka.ms/azuresentinelsolutionsdoc\">Learn more about Solutions</a></p>\n",
         "contentKind": "Solution",
         "contentProductId": "[variables('_solutioncontentProductId')]",
         "id": "[variables('_solutioncontentProductId')]",
@@ -9752,6 +10852,11 @@
               "kind": "DataConnector",
               "contentId": "[variables('_dataConnectorContentId1')]",
               "version": "[variables('dataConnectorVersion1')]"
+            },
+            {
+              "kind": "DataConnector",
+              "contentId": "[variables('_dataConnectorContentIdConnections2')]",
+              "version": "[variables('dataConnectorCCPVersion')]"
             },
             {
               "kind": "AnalyticsRule",

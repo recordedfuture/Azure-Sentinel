@@ -1,0 +1,325 @@
+{
+    "name": "RecordedFutureCCF",
+    "apiVersion": "2022-09-01-preview",
+    "type": "Microsoft.SecurityInsights/dataConnectorDefinitions",
+    "location": "{{location}}",
+    "kind": "Customizable",
+    "properties": {
+        "connectorUiConfig": {
+            "id": "RecordedFutureCCF",
+            "title": "Recorded Future (via Codeless Connector Framework)",
+            "publisher": "Recorded Future",
+            "descriptionMarkdown": "Imports [Recorded Future](https://www.recordedfuture.com/) data into Microsoft Sentinel using the Codeless Connector Framework (CCF). Pick the data types to import when adding a connection.\n\n**Playbook Alerts**: imports [Recorded Future Playbook Alerts](https://support.recordedfuture.com/hc/en-us/articles/13152506878739-Playbook-Alerting-Rules) hourly into the `RecordedFuturePlaybookAlerts_V2_CL` table, optionally filtered by category, priority and status. Replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App.",
+            "graphQueriesTableName": "RecordedFuturePlaybookAlerts_V2_CL",
+            "graphQueries": [
+                {
+                    "metricName": "Total playbook alerts received",
+                    "legend": "RecordedFuturePlaybookAlerts_V2_CL",
+                    "baseQuery": "{{graphQueriesTableName}}"
+                }
+            ],
+            "sampleQueries": [
+                {
+                    "description": "Recent playbook alerts",
+                    "query": "RecordedFuturePlaybookAlerts_V2_CL\n| sort by TimeGenerated desc"
+                },
+                {
+                    "description": "Latest state of each playbook alert",
+                    "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(updated_date, *) by id"
+                },
+                {
+                    "description": "Playbook alerts without duplicates (one row per alert update)",
+                    "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(TimeGenerated, *) by id, updated_date"
+                }
+            ],
+            "dataTypes": [
+                {
+                    "name": "RecordedFuturePlaybookAlerts_V2_CL",
+                    "lastDataReceivedQuery": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize Time = max(TimeGenerated)\n| where isnotempty(Time)"
+                }
+            ],
+            "connectivityCriteria": [
+                {
+                    "type": "HasDataConnectors"
+                }
+            ],
+            "availability": {
+                "isPreview": true,
+                "status": 1
+            },
+            "permissions": {
+                "resourceProvider": [
+                    {
+                        "provider": "Microsoft.OperationalInsights/workspaces",
+                        "permissionsDisplayText": "Read and Write permissions are required.",
+                        "providerDisplayName": "Workspace",
+                        "scope": "Workspace",
+                        "requiredPermissions": {
+                            "write": true,
+                            "read": true,
+                            "delete": true
+                        }
+                    }
+                ],
+                "customs": [
+                    {
+                        "name": "Recorded Future API Token",
+                        "description": "A Recorded Future API token with access to the selected data types (e.g. Playbook Alerts)."
+                    },
+                    {
+                        "name": "Azure roles",
+                        "description": "**Install** the solution (data collection rule `RecordedFutureCCFDCR` and table `RecordedFuturePlaybookAlerts_V2_CL`): **Contributor**, or **Monitoring Contributor** and **Log Analytics Contributor**, on the workspace's resource group. **Add connection**, then **Connect** (creates a Microsoft Sentinel data connector in the workspace): **Microsoft Sentinel Contributor** on the workspace. No role assignments are created."
+                    }
+                ]
+            },
+            "instructionSteps": [
+                {
+                    "title": "1. Disable the Logic App importer",
+                    "description": "If the `RecordedFuture-Playbook-Alert-Importer` Logic App is running, disable it before adding a Playbook Alerts connection, otherwise alerts are imported twice."
+                },
+                {
+                    "title": "2. Add a connection",
+                    "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick one data type and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
+                    "instructions": [
+                        {
+                            "type": "DataConnectorsGrid",
+                            "parameters": {
+                                "mapping": [
+                                    {
+                                        "columnName": "Name",
+                                        "columnValue": "properties.addOnAttributes.friendlyName"
+                                    },
+                                    {
+                                        "columnName": "Data type",
+                                        "columnValue": "properties.addOnAttributes.dataType"
+                                    },
+                                    {
+                                        "columnName": "Filters",
+                                        "columnValue": "properties.addOnAttributes.filters"
+                                    }
+                                ],
+                                "menuItems": [
+                                    "DeleteConnector"
+                                ]
+                            }
+                        },
+                        {
+                            "type": "ContextPane",
+                            "parameters": {
+                                "label": "Add connection",
+                                "title": "Add Recorded Future connection",
+                                "subtitle": "Import Recorded Future data",
+                                "contextPaneType": "DataConnectorsContextPane",
+                                "isPrimary": true,
+                                "instructionSteps": [
+                                    {
+                                        "instructions": [
+                                            {
+                                                "type": "Textbox",
+                                                "parameters": {
+                                                    "label": "Connection name",
+                                                    "placeholder": "e.g. All playbook alerts",
+                                                    "type": "text",
+                                                    "name": "friendlyName",
+                                                    "validations": {
+                                                        "required": true
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "InfoMessage",
+                                                "parameters": {
+                                                    "text": "Adding or replacing a connection requires the **Microsoft Sentinel Contributor** role on the workspace (or Contributor on its resource group). Without it, Connect fails with a permissions error.",
+                                                    "visible": true,
+                                                    "inline": true
+                                                }
+                                            },
+                                            {
+                                                "type": "InfoMessage",
+                                                "parameters": {
+                                                    "text": "Each connection imports one data type; add one connection per data type. Re-adding a connection with the same name replaces it (settings can't be edited in place). Connections of the same data type with overlapping filters ingest the same alerts twice; one connection is usually enough. Empty filters = all.",
+                                                    "visible": true,
+                                                    "inline": true
+                                                }
+                                            },
+                                            {
+                                                "type": "Markdown",
+                                                "parameters": {
+                                                    "content": "## Recorded Future API\n\nEnter your Recorded Future API token."
+                                                }
+                                            },
+                                            {
+                                                "type": "Textbox",
+                                                "parameters": {
+                                                    "label": "API Token",
+                                                    "placeholder": "Recorded Future API token",
+                                                    "type": "password",
+                                                    "name": "apiKey",
+                                                    "validations": {
+                                                        "required": true
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "Markdown",
+                                                "parameters": {
+                                                    "content": "## Data type\n\nChoose the Recorded Future data this connection imports (one data type per connection)."
+                                                }
+                                            },
+                                            {
+                                                "type": "Dropdown",
+                                                "parameters": {
+                                                    "label": "Data type",
+                                                    "name": "dataTypes",
+                                                    "options": [
+                                                        {
+                                                            "key": "PlaybookAlerts",
+                                                            "text": "Playbook Alerts (RecordedFuturePlaybookAlerts_V2_CL)"
+                                                        }
+                                                    ],
+                                                    "placeholder": "Select a data type",
+                                                    "isMultiSelect": false,
+                                                    "required": true,
+                                                    "defaultAllSelected": true
+                                                }
+                                            },
+                                            {
+                                                "type": "Markdown",
+                                                "parameters": {
+                                                    "content": "## Playbook Alerts filters\n\nOptional. Leave a filter empty to import all values."
+                                                }
+                                            },
+                                            {
+                                                "type": "Dropdown",
+                                                "parameters": {
+                                                    "label": "Categories (optional)",
+                                                    "name": "categories",
+                                                    "options": [
+                                                        {
+                                                            "key": "code_repo_leakage",
+                                                            "text": "code_repo_leakage"
+                                                        },
+                                                        {
+                                                            "key": "cyber_vulnerability",
+                                                            "text": "cyber_vulnerability"
+                                                        },
+                                                        {
+                                                            "key": "dark_web",
+                                                            "text": "dark_web"
+                                                        },
+                                                        {
+                                                            "key": "domain_abuse",
+                                                            "text": "domain_abuse"
+                                                        },
+                                                        {
+                                                            "key": "identity_novel_exposures",
+                                                            "text": "identity_novel_exposures"
+                                                        },
+                                                        {
+                                                            "key": "malicious_sites",
+                                                            "text": "malicious_sites"
+                                                        },
+                                                        {
+                                                            "key": "socmed_impersonation",
+                                                            "text": "socmed_impersonation"
+                                                        },
+                                                        {
+                                                            "key": "third_party_risk",
+                                                            "text": "third_party_risk"
+                                                        }
+                                                    ],
+                                                    "placeholder": "All categories",
+                                                    "isMultiSelect": true,
+                                                    "required": false,
+                                                    "defaultAllSelected": false
+                                                }
+                                            },
+                                            {
+                                                "type": "InfoMessage",
+                                                "parameters": {
+                                                    "text": "Playbook alert categories to import. Empty imports all categories.",
+                                                    "visible": true,
+                                                    "inline": true
+                                                }
+                                            },
+                                            {
+                                                "type": "Dropdown",
+                                                "parameters": {
+                                                    "label": "Priorities (optional)",
+                                                    "name": "priorities",
+                                                    "options": [
+                                                        {
+                                                            "key": "High",
+                                                            "text": "High"
+                                                        },
+                                                        {
+                                                            "key": "Moderate",
+                                                            "text": "Moderate"
+                                                        },
+                                                        {
+                                                            "key": "Informational",
+                                                            "text": "Informational"
+                                                        }
+                                                    ],
+                                                    "placeholder": "All priorities",
+                                                    "isMultiSelect": true,
+                                                    "required": false,
+                                                    "defaultAllSelected": false
+                                                }
+                                            },
+                                            {
+                                                "type": "InfoMessage",
+                                                "parameters": {
+                                                    "text": "Playbook alert priorities to import. Empty imports all priorities.",
+                                                    "visible": true,
+                                                    "inline": true
+                                                }
+                                            },
+                                            {
+                                                "type": "Dropdown",
+                                                "parameters": {
+                                                    "label": "Statuses (optional)",
+                                                    "name": "statuses",
+                                                    "options": [
+                                                        {
+                                                            "key": "New",
+                                                            "text": "New"
+                                                        },
+                                                        {
+                                                            "key": "InProgress",
+                                                            "text": "In Progress"
+                                                        },
+                                                        {
+                                                            "key": "Dismissed",
+                                                            "text": "Dismissed"
+                                                        },
+                                                        {
+                                                            "key": "Resolved",
+                                                            "text": "Resolved"
+                                                        }
+                                                    ],
+                                                    "placeholder": "All statuses",
+                                                    "isMultiSelect": true,
+                                                    "required": false,
+                                                    "defaultAllSelected": false
+                                                }
+                                            },
+                                            {
+                                                "type": "InfoMessage",
+                                                "parameters": {
+                                                    "text": "Playbook alert statuses to import. Empty imports all statuses.",
+                                                    "visible": true,
+                                                    "inline": true
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,61 @@
+[
+    {
+        "name": "[[concat(parameters('innerWorkspace'),'/Microsoft.SecurityInsights/', 'RecordedFuturePBA', uniqueString(parameters('friendlyName')))]",
+        "apiVersion": "2022-12-01-preview",
+        "type": "Microsoft.SecurityInsights/dataConnectors",
+        "location": "{{location}}",
+        "kind": "RestApiPoller",
+        "properties": {
+            "connectorDefinitionName": "RecordedFutureCCF",
+            "dataType": "RecordedFuturePlaybookAlerts_V2_CL",
+            "dcrConfig": {
+                "streamName": "Custom-RecordedFuturePlaybookAlerts_V2_CL",
+                "dataCollectionEndpoint": "{{dataCollectionEndpoint}}",
+                "dataCollectionRuleImmutableId": "{{dataCollectionRuleImmutableId}}"
+            },
+            "auth": {
+                "type": "APIKey",
+                "ApiKey": "{{apiKey}}",
+                "ApiKeyName": "X-RFToken"
+            },
+            "request": {
+                "apiEndpoint": "https://api.recordedfuture.com/gw/azure/playbook-alert/export",
+                "httpMethod": "GET",
+                "queryWindowInMin": 60,
+                "queryTimeFormat": "yyyy-MM-ddTHH:mm:ssZ",
+                "startTimeAttributeName": "updated_from",
+                "endTimeAttributeName": "updated_until",
+                "rateLimitQPS": 5,
+                "retryCount": 3,
+                "timeoutInSeconds": 120,
+                "headers": {
+                    "Accept": "application/json",
+                    "User-Agent": "RecordedFuture-Sentinel-CCF"
+                },
+                "queryParameters": {
+                    "categories": "[[join(parameters('categories'), ',')]",
+                    "priorities": "[[join(parameters('priorities'), ',')]",
+                    "statuses": "[[join(parameters('statuses'), ',')]"
+                }
+            },
+            "response": {
+                "eventsJsonPaths": [
+                    "$.data"
+                ],
+                "format": "json"
+            },
+            "paging": {
+                "pagingType": "Offset",
+                "offsetParaName": "from",
+                "pageSize": 25,
+                "pageSizeParameterName": "limit"
+            },
+            "addOnAttributes": {
+                "friendlyName": "[[parameters('friendlyName')]",
+                "dataType": "Playbook alerts",
+                "filters": "[[concat('Categories: ', if(empty(parameters('categories')), 'All', join(parameters('categories'), ',')), '; Priorities: ', if(empty(parameters('priorities')), 'All', join(parameters('priorities'), ',')), '; Statuses: ', if(empty(parameters('statuses')), 'All', join(parameters('statuses'), ',')))]"
+            }
+        },
+        "condition": "[[contains(parameters('dataTypes'), 'PlaybookAlerts')]"
+    }
+]

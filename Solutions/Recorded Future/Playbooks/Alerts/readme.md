@@ -42,6 +42,17 @@ Retrieves Playbook Alerts and stores them in the **RecordedFuturePlaybookAlerts_
 > **Note:** The `create_incident` parameter is removed. Use Analytics Rules to create incidents from the `RecordedFuturePlaybookAlerts_V2_CL` table. See [Incident Creation](../readme.md#incident-creation) for more information.
 
 
+### Migrating to the Codeless Connector (preview)
+Playbook Alerts can also be imported without a Logic App, using the **Recorded Future (via Codeless Connector Framework)** data connector. It writes to the same `RecordedFuturePlaybookAlerts_V2_CL` table (through its own DCR, installed with the connector), polls hourly, and has optional category, priority and status filters.
+
+To switch:
+1. **Disable** the `RecordedFuture-Playbook-Alert-Importer` Logic App (Logic App > Overview > Disable). If both run, every alert is imported twice.
+2. In Microsoft Sentinel, open **Data connectors** > **Recorded Future (via Codeless Connector Framework)** and select **Add connection**.
+3. Enter a connection name and your API token, select the **Playbook Alerts** data type, optionally pick categories, priorities and statuses (empty imports all), and select **Connect**.
+4. When new alerts arrive in `RecordedFuturePlaybookAlerts_V2_CL`, delete the Logic App.
+
+The connector only imports alerts updated after it was connected. Alerts imported earlier by the Logic App stay in the table.
+
 ### Limiting Playbook Alert categories
 If you want to import only specific Playbook Alert categories, you can edit the `Search Playbook Alerts` step within the logic app and specify `Categories`:
 
