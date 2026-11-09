@@ -244,7 +244,7 @@
                     "id": "RecordedFutureCCF",
                     "title": "Recorded Future (via Codeless Connector Framework)",
                     "publisher": "Recorded Future",
-                    "descriptionMarkdown": "Imports [Recorded Future](https://www.recordedfuture.com/) data into Microsoft Sentinel using the Codeless Connector Framework (CCF). Pick the data types to import when adding a connection.\n\n**Playbook Alerts**: imports [Recorded Future Playbook Alerts](https://support.recordedfuture.com/hc/en-us/articles/13152506878739-Playbook-Alerting-Rules) hourly into the `RecordedFuturePlaybookAlerts_V2_CL` table, optionally filtered by category, priority and status. Replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App.",
+                    "descriptionMarkdown": "Imports [Recorded Future](https://www.recordedfuture.com/) data into Microsoft Sentinel using the Codeless Connector Framework (CCF). Pick the data types to import when adding a connection.\n\n**Playbook Alerts**: imports [Recorded Future Playbook Alerts](https://support.recordedfuture.com/hc/en-us/articles/13152506878739-Playbook-Alerting-Rules) every 5 minutes into the `RecordedFuturePlaybookAlerts_V2_CL` table, optionally filtered by category, priority and status. Replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App.",
                     "graphQueriesTableName": "RecordedFuturePlaybookAlerts_V2_CL",
                     "graphQueries": [
                         {
@@ -580,7 +580,7 @@
                 "request": {
                     "apiEndpoint": "[parameters('apiEndpoint')]",
                     "httpMethod": "GET",
-                    "queryWindowInMin": 60,
+                    "queryWindowInMin": 5,
                     "queryTimeFormat": "yyyy-MM-ddTHH:mm:ssZ",
                     "startTimeAttributeName": "updated_from",
                     "endTimeAttributeName": "updated_until",
@@ -592,6 +592,7 @@
                         "User-Agent": "RecordedFuture-Sentinel-CCF"
                     },
                     "queryParameters": {
+                        "limit": 25,
                         "categories": "[join(parameters('categories'), ',')]",
                         "priorities": "[join(parameters('priorities'), ',')]",
                         "statuses": "[join(parameters('statuses'), ',')]"
@@ -604,10 +605,10 @@
                     "format": "json"
                 },
                 "paging": {
-                    "pagingType": "Offset",
-                    "offsetParaName": "from",
-                    "pageSize": 25,
-                    "pageSizeParameterName": "limit"
+                    "pagingType": "NextPageToken",
+                    "nextPageTokenJsonPath": "$.next",
+                    "nextPageParaName": "next",
+                    "pagingInfoPlacement": "QueryString"
                 },
                 "addOnAttributes": {
                     "friendlyName": "[parameters('friendlyName')]",

@@ -43,7 +43,7 @@ Retrieves Playbook Alerts and stores them in the **RecordedFuturePlaybookAlerts_
 
 
 ### Migrating to the Codeless Connector (preview)
-Playbook Alerts can also be imported without a Logic App, using the **Recorded Future (via Codeless Connector Framework)** data connector. It writes to the same `RecordedFuturePlaybookAlerts_V2_CL` table (through its own DCR, installed with the connector), polls hourly, and has optional category, priority and status filters.
+Playbook Alerts can also be imported without a Logic App, using the **Recorded Future (via Codeless Connector Framework)** data connector. It writes to the same `RecordedFuturePlaybookAlerts_V2_CL` table (through its own DCR, installed with the connector), polls every 5 minutes (the Logic App runs hourly), and has optional category, priority and status filters.
 
 To switch:
 1. **Disable** the `RecordedFuture-Playbook-Alert-Importer` Logic App (Logic App > Overview > Disable). If both run, every alert is imported twice.

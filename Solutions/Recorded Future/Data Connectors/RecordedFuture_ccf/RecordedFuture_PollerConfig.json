@@ -21,7 +21,7 @@
             "request": {
                 "apiEndpoint": "https://api.recordedfuture.com/gw/azure/playbook-alert/export",
                 "httpMethod": "GET",
-                "queryWindowInMin": 60,
+                "queryWindowInMin": 5,
                 "queryTimeFormat": "yyyy-MM-ddTHH:mm:ssZ",
                 "startTimeAttributeName": "updated_from",
                 "endTimeAttributeName": "updated_until",
@@ -33,6 +33,7 @@
                     "User-Agent": "RecordedFuture-Sentinel-CCF"
                 },
                 "queryParameters": {
+                    "limit": 25,
                     "categories": "[[join(parameters('categories'), ',')]",
                     "priorities": "[[join(parameters('priorities'), ',')]",
                     "statuses": "[[join(parameters('statuses'), ',')]"
@@ -45,10 +46,10 @@
                 "format": "json"
             },
             "paging": {
-                "pagingType": "Offset",
-                "offsetParaName": "from",
-                "pageSize": 25,
-                "pageSizeParameterName": "limit"
+                "pagingType": "NextPageToken",
+                "nextPageTokenJsonPath": "$.next",
+                "nextPageParaName": "next",
+                "pagingInfoPlacement": "QueryString"
             },
             "addOnAttributes": {
                 "friendlyName": "[[parameters('friendlyName')]",

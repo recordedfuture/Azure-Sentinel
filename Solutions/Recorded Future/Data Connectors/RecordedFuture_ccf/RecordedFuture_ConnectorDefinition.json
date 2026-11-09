@@ -9,7 +9,7 @@
             "id": "RecordedFutureCCF",
             "title": "Recorded Future (via Codeless Connector Framework)",
             "publisher": "Recorded Future",
-            "descriptionMarkdown": "Imports [Recorded Future](https://www.recordedfuture.com/) data into Microsoft Sentinel using the Codeless Connector Framework (CCF). Pick the data types to import when adding a connection.\n\n**Playbook Alerts**: imports [Recorded Future Playbook Alerts](https://support.recordedfuture.com/hc/en-us/articles/13152506878739-Playbook-Alerting-Rules) hourly into the `RecordedFuturePlaybookAlerts_V2_CL` table, optionally filtered by category, priority and status. Replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App.",
+            "descriptionMarkdown": "Imports [Recorded Future](https://www.recordedfuture.com/) data into Microsoft Sentinel using the Codeless Connector Framework (CCF). Pick the data types to import when adding a connection.\n\n**Playbook Alerts**: imports [Recorded Future Playbook Alerts](https://support.recordedfuture.com/hc/en-us/articles/13152506878739-Playbook-Alerting-Rules) every 5 minutes into the `RecordedFuturePlaybookAlerts_V2_CL` table, optionally filtered by category, priority and status. Replaces the `RecordedFuture-Playbook-Alert-Importer` Logic App.",
             "graphQueriesTableName": "RecordedFuturePlaybookAlerts_V2_CL",
             "graphQueries": [
                 {
