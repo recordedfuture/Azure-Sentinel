@@ -117,6 +117,14 @@ function New-ParametersForConnectorInstuctions($instructions) {
                     type = "array";
                 }
             }
+            elseif ($instruction.parameters.required -eq $false) {
+                # Optional dropdowns may be left empty; the portal then omits the value,
+                # so the default must be a valid (empty) array, not the parameter name.
+                $newParameter = [PSCustomObject]@{
+                    defaultValue = @();
+                    type         = "array";
+                }
+            }
             else {
                 if (-not $instruction.parameters.options -or [string]::IsNullOrWhiteSpace($instruction.parameters.options[0].key)) {
                     throw "Dropdown '$($instruction.parameters.name)' must define at least one option with a non-empty key."
