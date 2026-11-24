@@ -40,7 +40,7 @@ dialog (`DataConnectorsGrid`/`ContextPane`). Each connection imports exactly one
   `updated_from`/`updated_until` (the 5-minute window), `limit` (1..100, we send 25), optional comma-separated
   `categories`/`priorities`/`statuses` (empty = all) and `next`. The response is `{data, next}`; `next` is an opaque
   token, present only when the page is full, and is sent back as the `next` query parameter (`NextPageToken` paging).
-  Bad parameters return 400. The tile's "Playbook Alerts without duplicates" sample query
+  Bad parameters return 400. The tile's "Playbook alerts without duplicates" sample query
   (`arg_max(TimeGenerated, *) by id, updated_date`) covers rare duplicates (e.g. retried polls).
   The packaging tool emits every Dropdown parameter as `type: array`, single-select included (the portal passes a
   one-element array, cf. QualysVM's `parameters('x')[0]`), so `contains()` and `join()` work on all of them.

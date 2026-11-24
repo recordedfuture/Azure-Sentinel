@@ -28,7 +28,7 @@
                     "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(updated_date, *) by id"
                 },
                 {
-                    "description": "Playbook Alerts without duplicates (one row per alert update)",
+                    "description": "Playbook alerts without duplicates (one row per alert update)",
                     "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(TimeGenerated, *) by id, updated_date"
                 }
             ],
@@ -297,7 +297,7 @@
                 },
                 {
                     "title": "3. Troubleshooting",
-                    "description": "**Something went wrong?** Usually the API key is wrong or expired: delete the connection and add it again with a valid key. Missed polls are caught up automatically. To see errors, turn on health monitoring in workspace settings and run `SentinelHealth | where SentinelResourceType == \"Data connector\" and SentinelResourceName startswith \"RecordedFuture\"`."
+                    "description": "**Something went wrong?** Usually the API token is wrong or expired: delete the connection and add it again with a valid token. Missed polls are caught up automatically. To see errors, turn on health monitoring in workspace settings and run `SentinelHealth | where SentinelResourceType == \"Data connector\" | project TimeGenerated, SentinelResourceName, Status, Description, Reason`."
                 }
             ]
         }
