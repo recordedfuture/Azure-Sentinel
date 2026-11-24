@@ -21,14 +21,14 @@
             "sampleQueries": [
                 {
                     "description": "Recent playbook alerts",
-                    "query": "RecordedFuturePlaybookAlerts_V2_CL\n| sort by TimeGenerated desc"
+                    "query": "RecordedFuturePlaybookAlerts_V2_CL\n| sort by TimeGenerated desc\n| take 100"
                 },
                 {
                     "description": "Latest state of each playbook alert",
                     "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(updated_date, *) by id"
                 },
                 {
-                    "description": "Playbook alerts without duplicates (one row per alert update)",
+                    "description": "Playbook Alerts without duplicates (one row per alert update)",
                     "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(TimeGenerated, *) by id, updated_date"
                 }
             ],
@@ -79,7 +79,7 @@
                 },
                 {
                     "title": "2. Add a connection",
-                    "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick one data type and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
+                    "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick one data type and optional filters, then **Connect**. Playbook Alerts are polled every 5 minutes.",
                     "instructions": [
                         {
                             "type": "DataConnectorsGrid",
@@ -235,14 +235,6 @@
                                                 }
                                             },
                                             {
-                                                "type": "InfoMessage",
-                                                "parameters": {
-                                                    "text": "Playbook alert categories to import. Empty imports all categories.",
-                                                    "visible": true,
-                                                    "inline": true
-                                                }
-                                            },
-                                            {
                                                 "type": "Dropdown",
                                                 "parameters": {
                                                     "label": "Priorities (optional)",
@@ -265,14 +257,6 @@
                                                     "isMultiSelect": true,
                                                     "required": false,
                                                     "defaultAllSelected": false
-                                                }
-                                            },
-                                            {
-                                                "type": "InfoMessage",
-                                                "parameters": {
-                                                    "text": "Playbook alert priorities to import. Empty imports all priorities.",
-                                                    "visible": true,
-                                                    "inline": true
                                                 }
                                             },
                                             {
@@ -303,14 +287,6 @@
                                                     "required": false,
                                                     "defaultAllSelected": false
                                                 }
-                                            },
-                                            {
-                                                "type": "InfoMessage",
-                                                "parameters": {
-                                                    "text": "Playbook alert statuses to import. Empty imports all statuses.",
-                                                    "visible": true,
-                                                    "inline": true
-                                                }
                                             }
                                         ]
                                     }
@@ -318,6 +294,10 @@
                             }
                         }
                     ]
+                },
+                {
+                    "title": "3. Troubleshooting",
+                    "description": "**Something went wrong?** Usually the API key is wrong or expired: delete the connection and add it again with a valid key. Missed polls are caught up automatically. To see errors, turn on health monitoring in workspace settings and run `SentinelHealth | where SentinelResourceType == \"Data connector\" and SentinelResourceName startswith \"RecordedFuture\"`."
                 }
             ]
         }

@@ -35,17 +35,18 @@ dialog (`DataConnectorsGrid`/`ContextPane`). Each connection imports exactly one
   **Data type** (`addOnAttributes.dataType`) and **Filters** (`addOnAttributes.filters`). Connections can only be
   deleted, not edited.
 - `RecordedFuture_PollerConfig.json`: one `RestApiPoller` per data type, gated by `condition`
-  (`contains(parameters('dataTypes'), 'PlaybookAlerts')`). Playbook Alerts: `GET /gw/azure/playbook-alert/export`,
-  `X-RFToken`, polled every 5 minutes (5-minute window on `updated_from`/`updated_until`, no delay), keyset paging
-  (`NextPageToken`: the response's `next` token is sent back as the `next` query parameter) with `limit`=25 as a
-  request query parameter. Keyset paging keeps pages stable while alerts are updated, so duplicates are rare; the
-  tile's "Playbook alerts without duplicates" sample query (`arg_max(TimeGenerated, *) by id, updated_date`) stays
-  for the remaining edge cases (e.g. retried polls).
+  (`contains(parameters('dataTypes'), 'PlaybookAlerts')`). Playbook Alerts: `GET /gw/azure/playbook-alert/export`
+  (BFI contract `GET /playbook-alert/export`), `X-RFToken`, polled every 5 minutes. Query parameters:
+  `updated_from`/`updated_until` (the 5-minute window), `limit` (1..100, we send 25), optional comma-separated
+  `categories`/`priorities`/`statuses` (empty = all) and `next`. The response is `{data, next}`; `next` is an opaque
+  token, present only when the page is full, and is sent back as the `next` query parameter (`NextPageToken` paging).
+  Bad parameters return 400. The tile's "Playbook Alerts without duplicates" sample query
+  (`arg_max(TimeGenerated, *) by id, updated_date`) covers rare duplicates (e.g. retried polls).
   The packaging tool emits every Dropdown parameter as `type: array`, single-select included (the portal passes a
   one-element array, cf. QualysVM's `parameters('x')[0]`), so `contains()` and `join()` work on all of them.
   Multi-select values are sent as comma-separated strings (`join(parameters('x'), ',')`).
   To add a data type: add an option to `dataTypes`, a gated poller, and its stream/table to the DCR and table files.
-  **Convention: every poller must set `addOnAttributes.dataType`** (a readable label, e.g. `Playbook alerts`) **and
+  **Convention: every poller must set `addOnAttributes.dataType`** (a readable label, e.g. `Playbook Alerts`) **and
   `addOnAttributes.filters`** (a readable summary of its filters built with ARM expressions, e.g.
   `Categories: All; Priorities: High,Moderate; Statuses: All`, where an empty selection becomes `All` via
   `if(empty(parameters('x')), 'All', join(parameters('x'), ','))`; use `[[` so it is evaluated at Connect time).

@@ -751,14 +751,14 @@
                   "sampleQueries": [
                     {
                       "description": "Recent playbook alerts",
-                      "query": "RecordedFuturePlaybookAlerts_V2_CL\n| sort by TimeGenerated desc"
+                      "query": "RecordedFuturePlaybookAlerts_V2_CL\n| sort by TimeGenerated desc\n| take 100"
                     },
                     {
                       "description": "Latest state of each playbook alert",
                       "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(updated_date, *) by id"
                     },
                     {
-                      "description": "Playbook alerts without duplicates (one row per alert update)",
+                      "description": "Playbook Alerts without duplicates (one row per alert update)",
                       "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(TimeGenerated, *) by id, updated_date"
                     }
                   ],
@@ -809,7 +809,7 @@
                     },
                     {
                       "title": "2. Add a connection",
-                      "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick one data type and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
+                      "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick one data type and optional filters, then **Connect**. Playbook Alerts are polled every 5 minutes.",
                       "instructions": [
                         {
                           "type": "DataConnectorsGrid",
@@ -965,14 +965,6 @@
                                     }
                                   },
                                   {
-                                    "type": "InfoMessage",
-                                    "parameters": {
-                                      "text": "Playbook alert categories to import. Empty imports all categories.",
-                                      "visible": true,
-                                      "inline": true
-                                    }
-                                  },
-                                  {
                                     "type": "Dropdown",
                                     "parameters": {
                                       "label": "Priorities (optional)",
@@ -995,14 +987,6 @@
                                       "isMultiSelect": true,
                                       "required": false,
                                       "defaultAllSelected": false
-                                    }
-                                  },
-                                  {
-                                    "type": "InfoMessage",
-                                    "parameters": {
-                                      "text": "Playbook alert priorities to import. Empty imports all priorities.",
-                                      "visible": true,
-                                      "inline": true
                                     }
                                   },
                                   {
@@ -1033,14 +1017,6 @@
                                       "required": false,
                                       "defaultAllSelected": false
                                     }
-                                  },
-                                  {
-                                    "type": "InfoMessage",
-                                    "parameters": {
-                                      "text": "Playbook alert statuses to import. Empty imports all statuses.",
-                                      "visible": true,
-                                      "inline": true
-                                    }
                                   }
                                 ]
                               }
@@ -1048,6 +1024,10 @@
                           }
                         }
                       ]
+                    },
+                    {
+                      "title": "3. Troubleshooting",
+                      "description": "**Something went wrong?** Usually the API key is wrong or expired: delete the connection and add it again with a valid key. Missed polls are caught up automatically. To see errors, turn on health monitoring in workspace settings and run `SentinelHealth | where SentinelResourceType == \"Data connector\" and SentinelResourceName startswith \"RecordedFuture\"`."
                     }
                   ]
                 }
@@ -1286,14 +1266,14 @@
           "sampleQueries": [
             {
               "description": "Recent playbook alerts",
-              "query": "RecordedFuturePlaybookAlerts_V2_CL\n| sort by TimeGenerated desc"
+              "query": "RecordedFuturePlaybookAlerts_V2_CL\n| sort by TimeGenerated desc\n| take 100"
             },
             {
               "description": "Latest state of each playbook alert",
               "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(updated_date, *) by id"
             },
             {
-              "description": "Playbook alerts without duplicates (one row per alert update)",
+              "description": "Playbook Alerts without duplicates (one row per alert update)",
               "query": "RecordedFuturePlaybookAlerts_V2_CL\n| summarize arg_max(TimeGenerated, *) by id, updated_date"
             }
           ],
@@ -1344,7 +1324,7 @@
             },
             {
               "title": "2. Add a connection",
-              "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick one data type and optional filters, then **Connect**. Playbook Alerts are polled every hour.",
+              "description": "Select **Add connection**, enter a connection name and your Recorded Future API token, pick one data type and optional filters, then **Connect**. Playbook Alerts are polled every 5 minutes.",
               "instructions": [
                 {
                   "type": "DataConnectorsGrid",
@@ -1500,14 +1480,6 @@
                             }
                           },
                           {
-                            "type": "InfoMessage",
-                            "parameters": {
-                              "text": "Playbook alert categories to import. Empty imports all categories.",
-                              "visible": true,
-                              "inline": true
-                            }
-                          },
-                          {
                             "type": "Dropdown",
                             "parameters": {
                               "label": "Priorities (optional)",
@@ -1530,14 +1502,6 @@
                               "isMultiSelect": true,
                               "required": false,
                               "defaultAllSelected": false
-                            }
-                          },
-                          {
-                            "type": "InfoMessage",
-                            "parameters": {
-                              "text": "Playbook alert priorities to import. Empty imports all priorities.",
-                              "visible": true,
-                              "inline": true
                             }
                           },
                           {
@@ -1568,14 +1532,6 @@
                               "required": false,
                               "defaultAllSelected": false
                             }
-                          },
-                          {
-                            "type": "InfoMessage",
-                            "parameters": {
-                              "text": "Playbook alert statuses to import. Empty imports all statuses.",
-                              "visible": true,
-                              "inline": true
-                            }
                           }
                         ]
                       }
@@ -1583,6 +1539,10 @@
                   }
                 }
               ]
+            },
+            {
+              "title": "3. Troubleshooting",
+              "description": "**Something went wrong?** Usually the API key is wrong or expired: delete the connection and add it again with a valid key. Missed polls are caught up automatically. To see errors, turn on health monitoring in workspace settings and run `SentinelHealth | where SentinelResourceType == \"Data connector\" and SentinelResourceName startswith \"RecordedFuture\"`."
             }
           ]
         }
@@ -1774,7 +1734,7 @@
                 },
                 "addOnAttributes": {
                   "friendlyName": "[[parameters('friendlyName')]",
-                  "dataType": "Playbook alerts",
+                  "dataType": "Playbook Alerts",
                   "filters": "[[concat('Categories: ', if(empty(parameters('categories')), 'All', join(parameters('categories'), ',')), '; Priorities: ', if(empty(parameters('priorities')), 'All', join(parameters('priorities'), ',')), '; Statuses: ', if(empty(parameters('statuses')), 'All', join(parameters('statuses'), ',')))]"
                 }
               },
@@ -1828,10 +1788,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI",
                     "dataTypes": [
                       "ThreatIntelIndicators"
-                    ]
+                    ],
+                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI"
                   }
                 ],
                 "tactics": [
@@ -1846,17 +1806,17 @@
                 ],
                 "entityMappings": [
                   {
+                    "entityType": "FileHash",
                     "fieldMappings": [
                       {
-                        "identifier": "Value",
-                        "columnName": "Hash"
+                        "columnName": "Hash",
+                        "identifier": "Value"
                       },
                       {
-                        "identifier": "Algorithm",
-                        "columnName": "HashType"
+                        "columnName": "HashType",
+                        "identifier": "Algorithm"
                       }
-                    ],
-                    "entityType": "FileHash"
+                    ]
                   }
                 ],
                 "eventGroupingSettings": {
@@ -1866,20 +1826,20 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
-                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Hash}} from the {{Type}} table.\\n",
                   "alertDisplayNameFormat": "{{Description}}",
+                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Hash}} from the {{Type}} table.\\n",
                   "alertDynamicProperties": [
                     {
-                      "value": "RecordedFuturePortalLink",
-                      "alertProperty": "AlertLink"
+                      "alertProperty": "AlertLink",
+                      "value": "RecordedFuturePortalLink"
                     }
                   ]
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
                     "matchingMethod": "AllEntities",
+                    "reopenClosedIncident": false,
                     "enabled": true
                   },
                   "createIncident": true
@@ -1965,10 +1925,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI",
                     "dataTypes": [
                       "ThreatIntelIndicators"
-                    ]
+                    ],
+                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI"
                   }
                 ],
                 "tactics": [
@@ -1981,13 +1941,13 @@
                 ],
                 "entityMappings": [
                   {
+                    "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "identifier": "Address",
-                        "columnName": "NetworkIP"
+                        "columnName": "NetworkIP",
+                        "identifier": "Address"
                       }
-                    ],
-                    "entityType": "IP"
+                    ]
                   }
                 ],
                 "eventGroupingSettings": {
@@ -1997,20 +1957,20 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
-                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{NetworkIP}} from the {{Type}} table.\\n",
                   "alertDisplayNameFormat": "{{Description}}",
+                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{NetworkIP}} from the {{Type}} table.\\n",
                   "alertDynamicProperties": [
                     {
-                      "value": "RecordedFuturePortalLink",
-                      "alertProperty": "AlertLink"
+                      "alertProperty": "AlertLink",
+                      "value": "RecordedFuturePortalLink"
                     }
                   ]
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
                     "matchingMethod": "AllEntities",
+                    "reopenClosedIncident": false,
                     "enabled": true
                   },
                   "createIncident": true
@@ -2096,10 +2056,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI",
                     "dataTypes": [
                       "ThreatIntelIndicators"
-                    ]
+                    ],
+                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI"
                   }
                 ],
                 "tactics": [
@@ -2112,13 +2072,13 @@
                 ],
                 "entityMappings": [
                   {
+                    "entityType": "DNS",
                     "fieldMappings": [
                       {
-                        "identifier": "DomainName",
-                        "columnName": "Domain"
+                        "columnName": "Domain",
+                        "identifier": "DomainName"
                       }
-                    ],
-                    "entityType": "DNS"
+                    ]
                   }
                 ],
                 "eventGroupingSettings": {
@@ -2128,20 +2088,20 @@
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
-                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Domain}} from the {{Type}} table.\\n",
                   "alertDisplayNameFormat": "{{Description}}",
+                  "alertDescriptionFormat": "**{{Description}}**\\n\\nCorrelation found on {{Domain}} from the {{Type}} table.\\n",
                   "alertDynamicProperties": [
                     {
-                      "value": "RecordedFuturePortalLink",
-                      "alertProperty": "AlertLink"
+                      "alertProperty": "AlertLink",
+                      "value": "RecordedFuturePortalLink"
                     }
                   ]
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
                     "matchingMethod": "AllEntities",
+                    "reopenClosedIncident": false,
                     "enabled": true
                   },
                   "createIncident": true
@@ -2227,10 +2187,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI",
                     "dataTypes": [
                       "ThreatIntelIndicators"
-                    ]
+                    ],
+                    "connectorId": "ThreatIntelligenceUploadIndicatorsAPI"
                   }
                 ],
                 "tactics": [
@@ -2244,33 +2204,33 @@
                 ],
                 "entityMappings": [
                   {
+                    "entityType": "URL",
                     "fieldMappings": [
                       {
-                        "identifier": "Url",
-                        "columnName": "Url"
+                        "columnName": "Url",
+                        "identifier": "Url"
                       }
-                    ],
-                    "entityType": "URL"
+                    ]
                   }
                 ],
                 "customDetails": {
                   "ActorInformation": "RecordedFuturePortalLink"
                 },
                 "alertDetailsOverride": {
-                  "alertDescriptionFormat": "*{{Description}}**\\n\\nCorrelation found on {{Url}} from the {{Type}} table.\\n",
                   "alertDisplayNameFormat": "{{Description}}",
+                  "alertDescriptionFormat": "*{{Description}}**\\n\\nCorrelation found on {{Url}} from the {{Type}} table.\\n",
                   "alertDynamicProperties": [
                     {
-                      "value": "RecordedFuturePortalLink",
-                      "alertProperty": "AlertLink"
+                      "alertProperty": "AlertLink",
+                      "value": "RecordedFuturePortalLink"
                     }
                   ]
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
                     "matchingMethod": "AllEntities",
+                    "reopenClosedIncident": false,
                     "enabled": true
                   },
                   "createIncident": true
@@ -2352,21 +2312,21 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "RecordedFuture",
                     "dataTypes": [
                       "RecordedFutureSandboxResults_V2_CL"
-                    ]
+                    ],
+                    "connectorId": "RecordedFuture"
                   }
                 ],
                 "entityMappings": [
                   {
+                    "entityType": "File",
                     "fieldMappings": [
                       {
-                        "identifier": "Name",
-                        "columnName": "FileName"
+                        "columnName": "FileName",
+                        "identifier": "Name"
                       }
-                    ],
-                    "entityType": "File"
+                    ]
                   }
                 ],
                 "eventGroupingSettings": {
@@ -2374,20 +2334,20 @@
                 },
                 "customDetails": {
                   "SandboxVerdict": "SandboxVerdict",
-                  "Source": "Source",
                   "FileName": "FileName",
+                  "SandboxScore": "SandboxScore",
                   "SampleId": "SampleId",
-                  "SandboxScore": "SandboxScore"
+                  "Source": "Source"
                 },
                 "alertDetailsOverride": {
-                  "alertDescriptionFormat": "_Recorded Future Sandbox - Malicious File in Storage Account_\n\n**Sandbox Score:** {{SandboxScore}}/100\n\n**Verdict:** {{SandboxVerdict}}\n\n**Sample ID:** {{SampleId}}\n\nA malicious file was detected in an Azure Storage Account. Investigate the source of this file and review the full sandbox report.\n",
-                  "alertDisplayNameFormat": "Malicious File in Storage: {{FileName}}"
+                  "alertDisplayNameFormat": "Malicious File in Storage: {{FileName}}",
+                  "alertDescriptionFormat": "_Recorded Future Sandbox - Malicious File in Storage Account_\n\n**Sandbox Score:** {{SandboxScore}}/100\n\n**Verdict:** {{SandboxVerdict}}\n\n**Sample ID:** {{SampleId}}\n\nA malicious file was detected in an Azure Storage Account. Investigate the source of this file and review the full sandbox report.\n"
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
                     "matchingMethod": "Selected",
+                    "reopenClosedIncident": false,
                     "enabled": true,
                     "groupByCustomDetails": [
                       "SandboxVerdict"
@@ -2472,53 +2432,53 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "RecordedFuture",
                     "dataTypes": [
                       "RecordedFutureSandboxResults_V2_CL"
-                    ]
+                    ],
+                    "connectorId": "RecordedFuture"
                   }
                 ],
                 "entityMappings": [
                   {
+                    "entityType": "File",
                     "fieldMappings": [
                       {
-                        "identifier": "Name",
-                        "columnName": "FileName"
+                        "columnName": "FileName",
+                        "identifier": "Name"
                       }
-                    ],
-                    "entityType": "File"
+                    ]
                   },
                   {
+                    "entityType": "Mailbox",
                     "fieldMappings": [
                       {
-                        "identifier": "MailboxPrimaryAddress",
-                        "columnName": "EmailFrom"
+                        "columnName": "EmailFrom",
+                        "identifier": "MailboxPrimaryAddress"
                       }
-                    ],
-                    "entityType": "Mailbox"
+                    ]
                   }
                 ],
                 "eventGroupingSettings": {
                   "aggregationKind": "AlertPerResult"
                 },
                 "customDetails": {
+                  "SampleId": "SampleId",
                   "EmailTo": "EmailTo",
                   "EmailFrom": "EmailFrom",
-                  "FileName": "FileName",
                   "SandboxVerdict": "SandboxVerdict",
-                  "SampleId": "SampleId",
                   "SandboxScore": "SandboxScore",
-                  "Source": "Source"
+                  "Source": "Source",
+                  "FileName": "FileName"
                 },
                 "alertDetailsOverride": {
-                  "alertDescriptionFormat": "_Recorded Future Sandbox - Malicious Email Attachment Detected_\n\n**Sandbox Score:** {{SandboxScore}}/100\n\n**Verdict:** {{SandboxVerdict}}\n\n**Sample ID:** {{SampleId}}\n\nA malicious file was detected in an email attachment. Review the full sandbox report and investigate the sender.\n",
-                  "alertDisplayNameFormat": "Malicious Email Attachment: {{FileName}} from {{EmailFrom}}"
+                  "alertDisplayNameFormat": "Malicious Email Attachment: {{FileName}} from {{EmailFrom}}",
+                  "alertDescriptionFormat": "_Recorded Future Sandbox - Malicious Email Attachment Detected_\n\n**Sandbox Score:** {{SandboxScore}}/100\n\n**Verdict:** {{SandboxVerdict}}\n\n**Sample ID:** {{SampleId}}\n\nA malicious file was detected in an email attachment. Review the full sandbox report and investigate the sender.\n"
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
                     "matchingMethod": "Selected",
+                    "reopenClosedIncident": false,
                     "enabled": true,
                     "groupByCustomDetails": [
                       "EmailFrom"
@@ -2603,34 +2563,34 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "RecordedFuture",
                     "dataTypes": [
                       "RecordedFutureClassicAlerts_V2_CL"
-                    ]
+                    ],
+                    "connectorId": "RecordedFuture"
                   }
                 ],
                 "eventGroupingSettings": {
                   "aggregationKind": "AlertPerResult"
                 },
                 "customDetails": {
-                  "RuleId": "RuleId",
-                  "RuleName": "RuleName"
+                  "RuleName": "RuleName",
+                  "RuleId": "RuleId"
                 },
                 "alertDetailsOverride": {
-                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nAlertID:\n{{AlertID}}\n\nTriggered: {{Triggered}}\n\nAI Summary: {{AISummary}}\n",
                   "alertDisplayNameFormat": "Alert: {{AlertName}}",
+                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nAlertID:\n{{AlertID}}\n\nTriggered: {{Triggered}}\n\nAI Summary: {{AISummary}}\n",
                   "alertDynamicProperties": [
                     {
-                      "value": "URL",
-                      "alertProperty": "AlertLink"
+                      "alertProperty": "AlertLink",
+                      "value": "URL"
                     }
                   ]
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
                     "matchingMethod": "Selected",
+                    "reopenClosedIncident": false,
                     "enabled": true,
                     "groupByCustomDetails": [
                       "RuleId"
@@ -2715,10 +2675,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "RecordedFuture",
                     "dataTypes": [
                       "RecordedFuturePlaybookAlerts_V2_CL"
-                    ]
+                    ],
+                    "connectorId": "RecordedFuture"
                   }
                 ],
                 "eventGroupingSettings": {
@@ -2728,20 +2688,20 @@
                   "Category": "category"
                 },
                 "alertDetailsOverride": {
-                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nEvidence Summary:\n{{alert_description}}\n\nPriority: {{priority}}\n\nRecorded Future Playbook Alert ID\n{{id}}\n",
                   "alertDisplayNameFormat": "Alert: {{rule_label}}  - {{alert_title}}",
+                  "alertDescriptionFormat": "_Recorded Future Alert_\n\nEvidence Summary:\n{{alert_description}}\n\nPriority: {{priority}}\n\nRecorded Future Playbook Alert ID\n{{id}}\n",
                   "alertDynamicProperties": [
                     {
-                      "value": "link",
-                      "alertProperty": "AlertLink"
+                      "alertProperty": "AlertLink",
+                      "value": "link"
                     }
                   ]
                 },
                 "incidentConfiguration": {
                   "groupingConfiguration": {
                     "lookbackDuration": "1h",
-                    "reopenClosedIncident": false,
                     "matchingMethod": "Selected",
+                    "reopenClosedIncident": false,
                     "enabled": true,
                     "groupByCustomDetails": [
                       "Category"
